@@ -22,6 +22,9 @@ Thumbs.db
 # Environment variables
 .env
 
+#database
+*.db
+*.sqlite3
 
 # custom
 */docs/
