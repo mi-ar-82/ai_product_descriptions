@@ -28,3 +28,8 @@ Thumbs.db
 
 # custom
 */docs/
+
+#code combiner
+code_combiner.py
+*code_combiner*.py
+*/output_code_combiner*/
