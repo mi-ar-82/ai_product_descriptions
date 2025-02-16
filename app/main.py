@@ -1,17 +1,24 @@
-# app/main.py
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+from contextlib import asynccontextmanager
+from fastapi import FastAPI
+from app.routes import router
+from app.db import engine
 from app.models import Base
-from app.config import settings
 
-# Use the database URL from settings
-engine = create_engine(settings.DATABASE_URL)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+# Define a lifespan function for startup and shutdown events
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup logic: Initialize the database schema
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)  # Create all tables at startup
+    yield  # Application runs here
 
-def init_db():
-    """Initialize the database."""
-    Base.metadata.create_all(bind=engine)
+# Create the FastAPI app instance with the lifespan function
+app = FastAPI(lifespan=lifespan)
 
-if __name__ == "__main__":
-    print("Initializing the database...")
-    init_db()
+# Include the router for API endpoints
+app.include_router(router)
+
+# Optional: Add a root endpoint for testing
+@app.get("/")
+async def root():
+    return {"message": "Welcome to the AI Product Descriptions App"}
