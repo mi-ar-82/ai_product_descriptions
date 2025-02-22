@@ -56,5 +56,18 @@ class TestAPI(unittest.IsolatedAsyncioTestCase):
         })
         self.assertEqual(login_response.status_code, 200)
 
+    async def test_product_creation(self):
+        response = await self.client.post(
+            "/upload-csv",
+            files = {"file": ("test.csv", valid_csv_content)},
+        )
+
+        assert response.status_code == 200
+        data = response.json()["products"][0]
+
+        assert data["handle"] == "example-handle"
+        assert data["input_title"] == "Example Title"
+
+
 if __name__ == "__main__":
     unittest.main()

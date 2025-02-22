@@ -4,7 +4,9 @@ from sqlalchemy.orm import sessionmaker
 from fastapi_users_db_sqlalchemy import SQLAlchemyUserDatabase
 from fastapi import Depends  # Import Depends from FastAPI
 from app.config import settings
-from app.models.user import User  # Ensure User model is imported
+from app.models.user import User
+from app.models import Base
+
 
 # Create the async engine and session maker
 engine = create_async_engine(settings.DATABASE_URL, future=True)
@@ -20,3 +22,8 @@ async def get_async_session() -> AsyncSession:
 # Dependency to get the user database
 async def get_user_db(session: AsyncSession = Depends(get_async_session)):
     yield SQLAlchemyUserDatabase(session, User)
+
+
+async def init_db():
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)

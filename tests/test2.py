@@ -94,5 +94,15 @@ class TestAPI(unittest.IsolatedAsyncioTestCase):
             response = self.client.post("/upload-csv", files={"file": ("missing_columns.csv", f, "text/csv")}, headers={"Authorization": f"Bearer {access_token}"})
         self.assertEqual(response.status_code, 400)
 
+    async def test_upload_csv_with_new_fields(self):
+        response = await self.client.post(
+            "/upload-csv",
+            files = {"file": ("test.csv", valid_csv_content)},
+            headers = {"Authorization": f"Bearer {self.token}"}
+        )
+
+        assert response.status_code == 200
+
+
 if __name__ == "__main__":
     unittest.main()
