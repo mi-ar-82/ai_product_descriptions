@@ -29,6 +29,7 @@ Thumbs.db
 
 # custom
 */docs/
+*.txt
 
 #code combiner
 code_combiner.py

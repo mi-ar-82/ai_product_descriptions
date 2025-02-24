@@ -9,6 +9,12 @@ from app.db import engine
 from app.models import Base
 from app.config import settings
 
+from app.routes.auth import router as auth_router
+from app.routes.upload_form import router as upload_form_router
+from app.routes.settings import router as settings_router
+from app.routes.download import router as download_router
+
+
 # Lifespan management
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -33,6 +39,10 @@ print("Debug: Session middleware added to FastAPI app")
 # Include routes
 app.include_router(router)
 app.include_router(html_auth.router)
+app.include_router(auth_router)
+app.include_router(upload_form_router)
+app.include_router(settings_router)
+app.include_router(download_router)
 print("Debug: Routers included in FastAPI app")
 
 # Configure templates
