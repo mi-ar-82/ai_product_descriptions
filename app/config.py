@@ -1,9 +1,18 @@
-# app/config.py
-import os
+# File: app/config.py
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
-class Settings:
-    DATABASE_URL = os.getenv("DATABASE_URL", "sqlite+aiosqlite:///./test.db")
-    SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key")
-    ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24  # 24 hours
+class Settings(BaseSettings):
+    DATABASE_URL: str = "sqlite+aiosqlite:///./test.db"
+    SECRET_KEY: str = "your-secret-key"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24
+
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        case_sensitive=True,
+        extra="ignore"
+    )
 
 settings = Settings()
+
+print("Debug: Settings loaded from environment variables")

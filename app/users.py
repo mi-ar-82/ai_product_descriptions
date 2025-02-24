@@ -1,74 +1,63 @@
-import uuid
+# File: app/users.py
+
 from fastapi import Depends
-from fastapi_users.manager import BaseUserManager
-from fastapi_users.authentication import AuthenticationBackend, BearerTransport, JWTStrategy
-from fastapi_users import FastAPIUsers
-from fastapi_users import schemas
-from fastapi_users.schemas import BaseUserCreate
+from fastapi_users import BaseUserManager, IntegerIDMixin
+from fastapi_users_db_sqlalchemy import SQLAlchemyUserDatabase
+from pydantic import EmailStr, BaseModel, ConfigDict
+from sqlalchemy.ext.asyncio import AsyncSession
+from app.db import get_async_session
+from app.models.user import User
 from fastapi_users.password import PasswordHelper
 
-from pydantic import BaseModel, EmailStr
+password_helper = PasswordHelper()
 
-
-
-from app.models.user import User  # Your custom user model
-from app.db import get_user_db  # Function to get the user database
-
-SECRET_KEY = "your-secret-key"  # Replace with a secure secret key
-
-# JWT Strategy for authentication
-def get_jwt_strategy() -> JWTStrategy:
-    return JWTStrategy(secret=SECRET_KEY, lifetime_seconds=3600)
-
-bearer_transport = BearerTransport(tokenUrl="auth/jwt/login")
-auth_backend = AuthenticationBackend(
-    name="jwt",
-    transport=bearer_transport,
-    get_strategy=get_jwt_strategy,
-)
-
-# Define Pydantic schemas for user creation and representation
-class UserCreate(schemas.BaseUserCreate):
+# Schemas for user creation, reading, and updating
+class UserCreate(BaseModel):
     email: EmailStr
     password: str
-
-    class Config:
-        orm_mode = True  # Enable ORM mode for using from_orm
+    model_config = ConfigDict(from_attributes=True)
 
 class UserRead(BaseModel):
     id: int
     email: EmailStr
     is_active: bool
+    is_superuser: bool
+    is_verified: bool
+    model_config = ConfigDict(from_attributes=True)
 
-    class Config:
-        orm_mode = True  # Enable ORM mode for using from_orm
+class UserUpdate(BaseModel):
+    email: EmailStr | None = None
+    password: str | None = None
+    is_active: bool | None = None
+    is_superuser: bool | None = None
+    is_verified: bool | None = None
 
-
-password_helper = PasswordHelper()
-# User Manager class
-class UserManager(BaseUserManager[User, int]):
-    async def create_user(self, user_create: UserCreate) -> User:
-        hashed_password = password_helper.hash(user_create.password)  # Hash password
-        user = User(
-            email=user_create.email,
-            hashed_password=hashed_password,
-            is_active=True,
-            is_superuser=False,
-            is_verified=False,
+# User Manager class that handles authentication and user creation.
+class UserManager(IntegerIDMixin, BaseUserManager[User, int]):
+    async def authenticate(self, credentials: dict) -> User | None:
+        print(f"Debug: Authenticating user with email: {credentials['email']}")
+        user = await self.get_by_email(credentials["email"])
+        if user is None:
+            return None
+        verified, _ = password_helper.verify_and_update(
+            credentials["password"],
+            user.hashed_password
         )
-        self.user_db.session.add(user)
-        await self.user_db.session.commit()
+        if not verified:
+            return None
         return user
 
+    async def create(self, user_create: UserCreate) -> User:
+        print(f"Debug: Creating new user with email: {user_create.email}")
+        hashed_password = password_helper.hash(user_create.password)
+        user_dict = user_create.model_dump()
+        user_dict["hashed_password"] = hashed_password
+        return await self.user_db.create(user_dict)
 
-# Dependency to provide the UserManager instance
-async def get_user_manager(user_db=Depends(get_user_db)):
+# Dependency to get the user database instance using SQLAlchemy.
+async def get_user_db(session: AsyncSession = Depends(get_async_session)):
+    yield SQLAlchemyUserDatabase(session, User)
+
+# Dependency to get the UserManager.
+async def get_user_manager(user_db: SQLAlchemyUserDatabase = Depends(get_user_db)):
     yield UserManager(user_db)
-
-# FastAPIUsers instance without unsupported arguments
-fastapi_users = FastAPIUsers[User, int](
-    get_user_manager=get_user_manager,
-    auth_backends=[auth_backend],
-)
-
-current_user = fastapi_users.current_user()

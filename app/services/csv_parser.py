@@ -14,6 +14,7 @@ def parse_csv(file_path: str) -> pd.DataFrame:
     Raises:
         ValueError: If required columns are missing, validation fails, or the file is empty.
     """
+    print(f"Debug: Parsing CSV file from path: {file_path}")
     # Load the CSV into a Pandas DataFrame
     df = pd.read_csv(file_path)
 
@@ -34,6 +35,7 @@ def parse_csv(file_path: str) -> pd.DataFrame:
 
     # Validate rows using Pydantic
     validated_data = validate_csv_rows(data)
+    print(f"Debug: CSV data validated successfully with {len(validated_data)} rows")
 
     # Return validated data as a DataFrame
-    return pd.DataFrame(validated_data)
+    return pd.DataFrame([row.model_dump() for row in validated_data])

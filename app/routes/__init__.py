@@ -1,31 +1,22 @@
-from fastapi import APIRouter, UploadFile, File, HTTPException, Depends
-from sqlalchemy.ext.asyncio import AsyncSession
-import pandas as pd
-from io import StringIO
-from app.auth import auth_backend
+# File: app/routes/__init__.py
+
+from fastapi import APIRouter, HTTPException, Depends
+from app.auth import basic_auth  # basic HTTP authentication dependency
 from app.models.user import User
-from app.db import get_async_session
-from app.users import fastapi_users, UserCreate, UserRead
-from app.routes.upload_csv import router as upload_csv_router
+from app.users import UserCreate, UserRead  # Removed fastapi_users since we use basic auth
 
 router = APIRouter()
 
-# Include FastAPI Users routes for authentication and registration with schemas
-router.include_router(
-    fastapi_users.get_auth_router(auth_backend),
-    prefix="/auth/jwt",
-    tags=["auth"]
-)
-router.include_router(
-    fastapi_users.get_register_router(UserRead, UserCreate),
-    prefix="/auth",
-    tags=["auth"]
-)
+@router.get("/auth/me")
+async def read_current_user(user: User = Depends(basic_auth)):
+    print(f"Debug: Fetching current user details for user ID: {user.id}")
+    return {"id": user.id, "email": user.email}
 
-# Include the upload CSV route
+# Additional routes (like CSV upload) can be included here
+from app.routes.upload_csv import router as upload_csv_router
+
 router.include_router(
     upload_csv_router,
     prefix="/api",
-    tags=["CSV Upload"])
-
-current_user = fastapi_users.current_user()
+    tags=["CSV Upload"]
+)

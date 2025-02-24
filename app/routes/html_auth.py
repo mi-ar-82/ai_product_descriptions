@@ -3,6 +3,7 @@ import os
 from fastapi import APIRouter, Request, Form, Depends, HTTPException, status
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
+from fastapi_users.manager import BaseUserManager
 from app.users import get_user_manager, UserCreate  # Import your user manager and schemas
 
 router = APIRouter()
@@ -15,10 +16,12 @@ templates = Jinja2Templates(directory=os.path.join(project_root, "templates"))
 
 @router.get("/login", response_class=HTMLResponse)
 async def login_page(request: Request):
+    print("Debug: Rendering login page")
     return templates.TemplateResponse("login.html", {"request": request})
 
 @router.get("/register", response_class=HTMLResponse)
 async def register_page(request: Request):
+    print("Debug: Rendering register page")
     return templates.TemplateResponse("register.html", {"request": request})
 
 @router.post("/register", response_class=HTMLResponse)
@@ -28,31 +31,36 @@ async def register(
     password: str = Form(...),
     user_manager=Depends(get_user_manager)
 ):
+    print(f"Debug: Attempting to register user with email: {email}")
     try:
         # Convert form data to the expected schema for registration
         user_create = UserCreate(email=email, password=password)
         # Create the user using your user manager
-        await user_manager.create_user(user_create)
+        await user_manager.create(user_create)
         # Redirect to login page after successful registration
         return RedirectResponse(url="/login", status_code=status.HTTP_302_FOUND)
     except Exception as e:
         # In case of error, re-render the registration page with an error message
         return templates.TemplateResponse("register.html", {"request": request, "error": str(e)})
 
-@router.post("/login", response_class=HTMLResponse)
+
+@router.post("/login", response_class = HTMLResponse)
 async def login(
-    request: Request,
-    email: str = Form(...),
-    password: str = Form(...)
+        request: Request,
+        email: str = Form(...),
+        password: str = Form(...),
+        user_manager: BaseUserManager = Depends(get_user_manager),
 ):
-    # Note: This example assumes you want to implement custom login logic.
-    # You might integrate with FastAPI Users' authentication flow here.
-    # For simplicity, this stub redirects to the home page upon "login".
-    # Properly implement token/session generation and verification as needed.
-    # If authentication fails, re-render the login page with an error.
+    print(f"Debug: Attempting to log in user with email: {email}")
     try:
-        # TODO: Implement user authentication using the provided email and password
-        # For instance, verify the user's credentials and create a session/token.
-        return RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
+        user = await user_manager.authenticate({"email": email, "password": password})
+        if not user:
+            return templates.TemplateResponse("login.html",
+                                              {"request": request, "error": "Invalid credentials"})
+
+        # Cookie will be set automatically by auth_backend
+        return RedirectResponse(url = "/", status_code = 302)
+
     except Exception as e:
-        return templates.TemplateResponse("login.html", {"request": request, "error": str(e)})
+        return templates.TemplateResponse("login.html",
+                                          {"request": request, "error": "Login failed"})

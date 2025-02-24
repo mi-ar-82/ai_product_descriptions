@@ -1,56 +1,42 @@
-from pydantic import BaseModel, ValidationError
+# File: app/services/csv_validation.py
+from pydantic import BaseModel, Field, ValidationError
 from typing import List, Dict
+import logging
+
+logger = logging.getLogger(__name__)
 
 
-# Define the Pydantic model for validation
 class ProductCSVRow(BaseModel):
-    handle: str
-    input_title: str
-    input_body: str
-    input_image: str
-    input_seo_title: str
-    input_seo_descr: str
+    handle: str = Field(..., alias = "Handle")
+    input_title: str = Field(..., alias = "Title")
+    input_body: str = Field(..., alias = "Body (HTML)")
+    input_image: str = Field(..., alias = "Image Src")
+    input_seo_title: str = Field(..., alias = "SEO Title")
+    input_seo_descr: str = Field(..., alias = "SEO Description")
+
+    class Config:
+        populate_by_name = True
 
 
-def validate_csv_rows(data: List[Dict]) -> List[Dict]:
-    """
-    Validate rows in the CSV file using Pydantic.
-
-    Args:
-        data (List[Dict]): List of rows (dictionaries) from the CSV file.
-
-    Returns:
-        List[Dict]: Validated rows.
-
-    Raises:
-        ValueError: If a row fails validation.
-    """
+def validate_csv_rows(data: List[Dict]) -> List[ProductCSVRow]:
     validated_rows = []
     errors = []
-
-    required_keys = ['Handle', 'Title', 'Body (HTML)', 'Image Src', 'SEO Title', 'SEO Description']
+    print(f"Debug: Validating {len(data)} rows of CSV data")
 
     for index, row in enumerate(data):
-        # Check for missing keys
-        missing_keys = [key for key in required_keys if key not in row]
-        if missing_keys:
-            raise ValueError(f"Row {index} is missing required fields: {missing_keys}")
-
         try:
-            # Validate each row using the Pydantic model
-            validated_row = ProductCSVRow(
-                handle=row['Handle'],
-                input_title=row['Title'],
-                input_body=row['Body (HTML)'],
-                input_image=row['Image Src'],
-                input_seo_title=row['SEO Title'],
-                input_seo_descr=row['SEO Description']
-            )
-            validated_rows.append(validated_row.dict())
+            validated_rows.append(ProductCSVRow.model_validate(row))
+            print(f"Debug: Row {index} validated successfully")
         except ValidationError as e:
-            errors.append({"row_index": index, "errors": e.errors()})
+            logger.error(f"Row {index} validation failed: {e}")
+            errors.append({
+                "row": index,
+                "errors": e.errors(),
+                "input_data": row
+            })
+            print(f"Debug: Validation failed for row {index} with errors: {e.errors()}")
 
     if errors:
-        raise ValueError(f"Validation errors occurred: {errors}")
+        raise ValueError(f"CSV validation failed with {len(errors)} errors")
 
     return validated_rows
