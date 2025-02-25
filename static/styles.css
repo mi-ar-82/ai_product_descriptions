@@ -1,0 +1,62 @@
+/* File: static/styles.css */
+/* Updated for dark mode */
+
+body {
+  font-family: Arial, Helvetica, sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #121212; /* Dark background */
+  color: #ffffff;            /* White text */
+}
+
+header {
+  background-color: #1f1f1f;
+  color: #ffffff;
+  padding: 1rem;
+  text-align: center;
+}
+
+main {
+  max-width: 800px;
+  margin: 2rem auto;
+  padding: 1rem;
+  background-color: #1e1e1e;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.9);
+}
+
+footer {
+  background-color: #1f1f1f;
+  color: #ffffff;
+  text-align: center;
+  padding: 0.5rem;
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+}
+
+a {
+  color: #64ffda; /* A contrasting accent color */
+  text-decoration: none;
+}
+
+button {
+  background-color: #64ffda;
+  color: #121212;
+  border: none;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+input, textarea {
+  font-family: Arial, Helvetica, sans-serif;
+  padding: 0.5rem;
+  border: 1px solid #333333;
+  border-radius: 4px;
+  background-color: #1e1e1e;
+  color: #ffffff;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: Arial, Helvetica, sans-serif;
+}

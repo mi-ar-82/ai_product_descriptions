@@ -30,6 +30,9 @@ Thumbs.db
 # custom
 */docs/
 *.txt
+*.png
+*.ico
+*.webmanifest
 
 #code combiner
 code_combiner.py

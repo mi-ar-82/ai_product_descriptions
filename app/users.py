@@ -50,7 +50,7 @@ class UserManager(IntegerIDMixin, BaseUserManager[User, int]):
     async def create(self, user_create: UserCreate) -> User:
         print(f"Debug: Creating new user with email: {user_create.email}")
         hashed_password = password_helper.hash(user_create.password)
-        user_dict = user_create.model_dump()
+        user_dict = user_create.model_dump(exclude={"password"})
         user_dict["hashed_password"] = hashed_password
         return await self.user_db.create(user_dict)
 
