@@ -35,4 +35,5 @@ async def basic_auth(
             headers={"WWW-Authenticate": "Basic"},
         )
     print(f"Debug: Password verification {'successful' if verified else 'failed'} for user: {user.email}")
+    print(f"Debug: Authenticated user ID: {user.id}")
     return user

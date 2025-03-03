@@ -1,22 +1,20 @@
 # File: app/routes/__init__.py
-
-from fastapi import APIRouter, HTTPException, Depends
-from app.auth import basic_auth  # basic HTTP authentication dependency
+from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import RedirectResponse
 from app.models.user import User
-from app.users import UserCreate, UserRead  # Removed fastapi_users since we use basic auth
+from app.users import UserCreate, UserRead
+from app.routes.html_auth import router as auth_router
+from app.routes.upload_csv import router as upload_csv_router
+
 
 router = APIRouter()
 
-@router.get("/auth/me")
-async def read_current_user(user: User = Depends(basic_auth)):
-    print(f"Debug: Fetching current user details for user ID: {user.id}")
-    return {"id": user.id, "email": user.email}
+# Include all authentication endpoints (login, register, auth/me, logout)
+router.include_router(auth_router, tags=["Authentication"])
 
-# Additional routes (like CSV upload) can be included here
-from app.routes.upload_csv import router as upload_csv_router
 
+# Include CSV upload endpoints under /api
 router.include_router(
     upload_csv_router,
-    prefix="/api",
     tags=["CSV Upload"]
 )

@@ -1,0 +1,56 @@
+<!-- File: templates/settings.html -->
+{% extends "base.html" %}
+
+{% block content %}
+<div class="settings">
+  <h2>Processing Settings Configuration</h2>
+
+  {% if error %}
+  <div class="error-message">{{ error }}</div>
+  {% endif %}
+
+  <form method="post" action="/settings">
+    <div class="form-group">
+      <label for="photo_resolution">Photo Resolution:</label>
+      <select id="photo_resolution" name="photo_resolution" required>
+        <option value="720p" {% if settings and settings.photo_resolution == '720p' %}selected{% endif %}>720p</option>
+        <option value="1080p" {% if settings and settings.photo_resolution == '1080p' %}selected{% endif %}>1080p</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="file_size_limit">File Size Limit:</label>
+      <select id="file_size_limit" name="file_size_limit" required>
+        <option value="64kB" {% if settings and settings.file_size_limit == '64kB' %}selected{% endif %}>64kB</option>
+        <option value="128kB" {% if settings and settings.file_size_limit == '128kB' %}selected{% endif %}>128kB</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="openai_prompt_base">Base Prompt:</label>
+      <textarea id="openai_prompt_base" name="openai_prompt_base" required>
+        {% if settings %}{{ settings.openai_prompt_base }}{% endif %}
+      </textarea>
+    </div>
+
+    <div class="form-group">
+      <label for="tone">Tone:</label>
+      <input type="text" id="tone" name="tone"
+             value="{% if settings %}{{ settings.tone }}{% endif %}"
+             placeholder="e.g., professional, casual" required>
+    </div>
+
+    <div class="form-group">
+      <label for="length">Length:</label>
+      <select id="length" name="length" required>
+        <option value="short" {% if settings and settings.length == 'short' %}selected{% endif %}>Short</option>
+        <option value="medium" {% if settings and settings.length == 'medium' %}selected{% endif %}>Medium</option>
+        <option value="long" {% if settings and settings.length == 'long' %}selected{% endif %}>Long</option>
+      </select>
+    </div>
+
+    <button type="submit" class="btn-save">Save Settings</button>
+    <a href="/dashboard" class="btn-cancel">Cancel</a>
+  </form>
+</div>
+{% endblock %}

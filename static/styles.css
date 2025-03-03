@@ -60,3 +60,54 @@ input, textarea {
 h1, h2, h3, h4, h5, h6 {
   font-family: Arial, Helvetica, sans-serif;
 }
+
+
+/* Dashboard Styles */
+.dashboard section {
+  margin: 2rem 0;
+  padding: 1.5rem;
+  background: #2a2a2a;
+  border-radius: 8px;
+}
+
+.file-list .file-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.8rem;
+  margin: 0.5rem 0;
+  background: #333;
+  border-radius: 4px;
+}
+
+.status {
+  padding: 0.2rem 0.5rem;
+  border-radius: 12px;
+  font-size: 0.8rem;
+}
+
+.status.processing { background: #ffd70033; color: #ffd700; }
+.status.completed { background: #90ee9033; color: #90ee90; }
+.status.failed { background: #ff000033; color: #ff0000; }
+
+/* Settings Form */
+.settings .form-group {
+  margin: 1.2rem 0;
+}
+
+.settings select,
+.settings input[type="text"],
+.settings textarea {
+  width: 100%;
+  padding: 0.8rem;
+  margin-top: 0.5rem;
+}
+
+.settings textarea {
+  height: 150px;
+  resize: vertical;
+}
+
+.btn-save, .btn-cancel {
+  padding: 0.8rem 1.5rem;
+  margin-right: 1rem;
+}

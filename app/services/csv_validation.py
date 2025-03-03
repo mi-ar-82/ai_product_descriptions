@@ -23,7 +23,10 @@ def validate_csv_rows(data: List[Dict]) -> List[ProductCSVRow]:
     errors = []
     print(f"Debug: Validating {len(data)} rows of CSV data")
 
+    print(type(enumerate(data)))
     for index, row in enumerate(data):
+        print(type(index))
+        print(type(row))
         try:
             validated_rows.append(ProductCSVRow.model_validate(row))
             print(f"Debug: Row {index} validated successfully")

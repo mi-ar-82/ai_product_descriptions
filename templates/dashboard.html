@@ -1,61 +1,46 @@
+<!-- File: templates/dashboard.html -->
 {% extends "base.html" %}
-{% block title %}Dashboard{% endblock %}
+
 {% block content %}
-<h2>Dashboard</h2>
+<div class="dashboard">
+  <h2>Welcome, {{ request.user.email }}</h2>
 
-<!-- CSV File Upload Section -->
-<section id="upload-section">
-  <h3>Upload CSV File</h3>
-  <form id="uploadForm" method="post" action="/upload" enctype="multipart/form-data">
-    <input type="file" name="file" accept=".csv" required>
-    <button type="submit">Upload CSV File</button>
-  </form>
-</section>
+  <!-- Upload Section -->
+  <section class="upload-section">
+    <h3>Recent Uploads</h3>
+    <div class="file-list">
+      {% for file in files %}
+      <div class="file-item">
+        <span class="filename">{{ file.file_name }}</span>
+        <span class="upload-date">{{ file.upload_date }}</span>
+        <span class="status {{ file.status|lower }}">{{ file.status }}</span>
+      </div>
+      {% else %}
+      <p>No files uploaded yet</p>
+      {% endfor %}
+    </div>
+  </section>
 
-<hr>
-
-<!-- Settings Configuration Section -->
-<section id="settings-section">
-  <h3>Settings Configuration</h3>
-  <form id="settingsForm" method="post" action="/settings">
-    <label for="photo_resolution">Photo Resolution:</label>
-    <input type="text" id="photo_resolution" name="photo_resolution" placeholder="720p or 1080p" required><br>
-
-    <label for="file_size_limit">File Size Limit:</label>
-    <input type="text" id="file_size_limit" name="file_size_limit" placeholder="64kB or 128kB" required><br>
-
-    <label for="openai_prompt_base">OpenAI Prompt Base:</label>
-    <textarea id="openai_prompt_base" name="openai_prompt_base" placeholder="Enter your prompt text" required></textarea><br>
-
-    <label for="tone">Tone:</label>
-    <input type="text" id="tone" name="tone" placeholder="e.g., casual, formal" required><br>
-
-    <label for="length">Length:</label>
-    <input type="text" id="length" name="length" placeholder="e.g., short, medium, long" required><br>
-
-    <button type="submit">Save Settings</button>
-  </form>
-</section>
-
-<hr>
-
-<!-- Process Products Section -->
-<section id="process-products-section">
-  <h3>Process Products</h3>
-  <form id="processForm" method="post" action="/process-products">
-    <button type="submit">Process Products</button>
-  </form>
-</section>
-
-<hr>
-
-<!-- Download Output Files Section -->
-<section id="download-section">
-  <h3>Download Output Files</h3>
-  <p>After processing, download your output files:</p>
-  <ul>
-    <li><a href="/download/products_output.csv" target="_blank">Download Processed Products CSV</a></li>
-    <li><a href="/download/products_not_processed.csv" target="_blank">Download Failed Products CSV</a></li>
-  </ul>
-</section>
+  <!-- Current Settings -->
+  <section class="current-settings">
+    <h3>Current Configuration</h3>
+    {% if settings %}
+    <dl>
+      <dt>Photo Resolution:</dt>
+      <dd>{{ settings.photo_resolution }}</dd>
+      <dt>File Size Limit:</dt>
+      <dd>{{ settings.file_size_limit }}</dd>
+      <dt>AI Prompt Base:</dt>
+      <dd class="prompt-preview">{{ settings.openai_prompt_base|truncate(100) }}</dd>
+      <dt>Tone:</dt>
+      <dd>{{ settings.tone }}</dd>
+      <dt>Length:</dt>
+      <dd>{{ settings.length }}</dd>
+    </dl>
+    {% else %}
+    <p>No settings configured yet</p>
+    {% endif %}
+    <a href="/settings" class="btn-configure">Configure Settings</a>
+  </section>
+</div>
 {% endblock %}

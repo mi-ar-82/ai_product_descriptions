@@ -13,6 +13,8 @@ configure_mappers()  # Ensure all mappers are set up
 
 # Create the async engine and session maker
 engine = create_async_engine(settings.DATABASE_URL, future=True)
+print(f"Debug: Engine URL: {engine.url}")  # Add after engine creation
+
 async_session_maker = sessionmaker(
     engine, class_=AsyncSession, expire_on_commit=False
 )
