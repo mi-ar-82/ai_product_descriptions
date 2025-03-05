@@ -15,6 +15,7 @@ from app.routes import router as main_router
 from app.routes.settings import router as settings_router
 from app.routes.download import router as download_router
 from app.routes.dashboard import router as dashboard_router
+from app.routes.process_products import router as process_products_router
 
 
 
@@ -70,6 +71,7 @@ app.include_router(main_router)
 app.include_router(settings_router)
 app.include_router(download_router)
 app.include_router(dashboard_router)
+app.include_router(process_products_router, tags=["Process Products"])
 
 
 @app.get("/")
