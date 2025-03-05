@@ -2,6 +2,7 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
+    DEBUG: bool = True #  change to False in production
     DATABASE_URL: str = "sqlite+aiosqlite:///./test.db"
     SECRET_KEY: str = "your-secret-key"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24

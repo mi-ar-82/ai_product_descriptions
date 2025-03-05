@@ -1,8 +1,12 @@
 # File: app/main.py
 import os
+import sys
 import logging
-import builtins
 from app.logger import logging_configurator
+logger = logging.getLogger(__name__)
+
+
+import builtins
 from contextlib import asynccontextmanager
 from logging.handlers import RotatingFileHandler
 from fastapi import FastAPI, Request
@@ -35,8 +39,8 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan = lifespan)
 
 # Environment-controlled logging (set via .env or OS environment)
-LOG_ENABLED = False  # Set to False to disable
-LOG_LEVEL = logging.DEBUG  # Set to desired level
+LOG_ENABLED = settings.DEBUG  # Set to False to disable
+LOG_LEVEL = logging.DEBUG if settings.DEBUG else logging.INFO   # Set to desired level
 
 logging_configurator.configure_logging(
     enable=LOG_ENABLED,
