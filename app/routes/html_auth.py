@@ -2,13 +2,15 @@
 import os
 import traceback
 import logging
+from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import APIRouter, Request, Form, Depends, HTTPException, status
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from fastapi_users.manager import BaseUserManager
-from app.users import get_user_manager, UserCreate  # Import your user manager and schemas
+from app.users import get_user_manager, UserCreate
 from app.auth import basic_auth
 from app.models.user import User
+from app.db import get_async_session
 
 
 logger = logging.getLogger(__name__)
@@ -39,23 +41,25 @@ async def register(
         request: Request,
         email: str = Form(...),
         password: str = Form(...),
-        user_manager = Depends(get_user_manager)
+        user_manager: BaseUserManager = Depends(get_user_manager),
+        session: AsyncSession = Depends(get_async_session)
 ):
     print(f"Debug: Registration attempt started for {email}", flush = True)
     try:
-        user_create = UserCreate(email = email, password = password)
-        print(f"Debug: UserCreate object: {user_create.model_dump()}", flush = True)
-
-        user = await user_manager.create(user_create)
-        print(f"Debug: User created - ID: {user.id}", flush = True)
+        async with session.begin():
+            user_create = UserCreate(email = email, password = password)
+            print(f"Debug: UserCreate object: {user_create.model_dump()}", flush = True)
+            user = await user_manager.create(user_create)
+            print(f"Debug: User created - ID: {user.id}", flush = True)
+            print(f"Debug: Password hash: {user.hashed_password}", flush = True)
 
         return RedirectResponse(url = "/login", status_code = status.HTTP_303_SEE_OTHER)
     except Exception as e:
-        print(f"Error: Registration failed - {str(e)}", flush = True)
-        print(f"Traceback: {traceback.format_exc()}", flush = True)
+        await session.rollback()
+        logger.error(f"Registration failed: {str(e)}")
         return templates.TemplateResponse("register.html", {
             "request": request,
-            "error": str(e)
+            "error": "Registration failed. Please try again."
         })
 
 
