@@ -15,4 +15,3 @@ passlib[bcrypt]==1.7.4
 aiosqlite
 itsdangerous
 jinja2
-uvloop

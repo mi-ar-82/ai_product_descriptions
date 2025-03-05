@@ -17,7 +17,6 @@ from app.models.user import User  # Required for type hinting
 
 
 router = APIRouter()
-logger = logging.getLogger(__name__)
 
 
 @router.post("/upload-csv")

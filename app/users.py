@@ -34,13 +34,13 @@ class UserUpdate(BaseModel):
 
 # User Manager class that handles authentication and user creation.
 class UserManager(IntegerIDMixin, BaseUserManager[User, int]):
-    async def authenticate(self, credentials: dict) -> User | None:
-        print(f"Debug: Authenticating user with email: {credentials['email']}")
-        user = await self.get_by_email(credentials["email"])
+    async def authenticate(self, email: str, password: str) -> User | None:
+        print(f"Debug: Authenticating user with email: {email}")
+        user = await self.get_by_email(email)
         if user is None:
             return None
         verified, _ = password_helper.verify_and_update(
-            credentials["password"],
+            password,
             user.hashed_password
         )
         if not verified:
@@ -50,9 +50,16 @@ class UserManager(IntegerIDMixin, BaseUserManager[User, int]):
     async def create(self, user_create: UserCreate) -> User:
         print(f"Debug: Creating new user with email: {user_create.email}")
         hashed_password = password_helper.hash(user_create.password)
-        user_dict = user_create.model_dump(exclude={"password"})
+        user_dict = user_create.model_dump(exclude = {"password"})
         user_dict["hashed_password"] = hashed_password
-        return await self.user_db.create(user_dict)
+        try:
+            return await self.user_db.create(user_dict)
+        except IntegrityError:
+            raise HTTPException(
+                status_code = 400,
+                detail = "A user with this email already exists."
+            )
+
 
 # Dependency to get the user database instance using SQLAlchemy.
 async def get_user_db(session: AsyncSession = Depends(get_async_session)):

@@ -1,14 +1,7 @@
 # File: app/main.py
 import os
-import sys
-import logging
-from app.logger import logging_configurator
-logger = logging.getLogger(__name__)
 
-
-import builtins
 from contextlib import asynccontextmanager
-from logging.handlers import RotatingFileHandler
 from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import RedirectResponse
@@ -38,29 +31,12 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan = lifespan)
 
-# Environment-controlled logging (set via .env or OS environment)
-LOG_ENABLED = settings.DEBUG  # Set to False to disable
-LOG_LEVEL = logging.DEBUG if settings.DEBUG else logging.INFO   # Set to desired level
-
-logging_configurator.configure_logging(
-    enable=LOG_ENABLED,
-    log_level=LOG_LEVEL
-)
-
 
 @app.middleware("http")
-async def session_middleware(request: Request, call_next):
-    session_cookie = request.cookies.get("session")
-    if session_cookie:
-        try:
-            user = await get_user_manager().get_session(session_cookie)
-            request.state.user = user
-        except Exception as e:
-            print(f"Session validation error: {str(e)}")
-
-    logger.debug(f"-> Request {request.method} {request.url}")
+async def debug_middleware(request: Request, call_next):
+    print(f"Debug: Request to {request.url}")
     response = await call_next(request)
-    logger.debug(f"<- Response {response.status_code} {request.url}")
+    print(f"Debug: Response {response.status_code}")
     return response
 
 

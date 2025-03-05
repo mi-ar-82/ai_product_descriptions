@@ -1,7 +1,6 @@
 # File: app/routes/html_auth.py
 import os
-import traceback
-import logging
+import sys
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import APIRouter, Request, Form, Depends, HTTPException, status
 from fastapi.responses import HTMLResponse, RedirectResponse
@@ -12,8 +11,7 @@ from app.auth import basic_auth
 from app.models.user import User
 from app.db import get_async_session
 
-
-logger = logging.getLogger(__name__)
+print("Debug: Initializing auth routes")
 
 
 router = APIRouter()
@@ -46,17 +44,18 @@ async def register(
 ):
     print(f"Debug: Registration attempt started for {email}", flush = True)
     try:
-        async with session.begin():
-            user_create = UserCreate(email = email, password = password)
-            print(f"Debug: UserCreate object: {user_create.model_dump()}", flush = True)
-            user = await user_manager.create(user_create)
-            print(f"Debug: User created - ID: {user.id}", flush = True)
-            print(f"Debug: Password hash: {user.hashed_password}", flush = True)
+        user_create = UserCreate(email = email, password = password)
+        print(f"Debug: UserCreate object: {user_create.model_dump()}", flush = True)
+        user = await user_manager.create(user_create)
+        print(f"Debug: User created - ID: {user.id}", flush = True)
+        print(f"Debug: Password hash: {user.hashed_password}", flush = True)
 
         return RedirectResponse(url = "/login", status_code = status.HTTP_303_SEE_OTHER)
     except Exception as e:
         await session.rollback()
-        logger.error(f"Registration failed: {str(e)}")
+        print(f"ERROR: Registration failed - {type(e).__name__}: {str(e)}")
+        import traceback
+        traceback.print_exc()
         return templates.TemplateResponse("register.html", {
             "request": request,
             "error": "Registration failed. Please try again."
