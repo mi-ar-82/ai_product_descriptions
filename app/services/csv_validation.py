@@ -40,6 +40,6 @@ def validate_csv_rows(data: List[Dict]) -> List[ProductCSVRow]:
             print(f"Debug: Validation failed for row {index} with errors: {e.errors()}")
 
     if errors:
-        raise ValueError(f"CSV validation failed with {len(errors)} errors")
+        raise ValidationError(f"CSV validation failed with {len(errors)} errors")
 
     return validated_rows

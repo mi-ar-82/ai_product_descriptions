@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.db import get_async_session
 from app.models.user import User
 from fastapi_users.password import PasswordHelper
+from sqlalchemy.exc import IntegrityError
 
 password_helper = PasswordHelper()
 

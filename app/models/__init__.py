@@ -1,14 +1,15 @@
+from sqlalchemy.orm import declarative_base
 from sqlalchemy import Column, Integer, String, Boolean, DateTime, Text, ForeignKey
 from sqlalchemy.orm import declarative_base, relationship
 from datetime import datetime, timezone
 
-
-
-
-
+# Define SQLAlchemy Base only once in this module
 Base = declarative_base()
 
-# The User model is now defined in app/models/user.py to avoid duplication
+from .user import User
+
+
+
 
 # UploadedFiles table
 class UploadedFile(Base):

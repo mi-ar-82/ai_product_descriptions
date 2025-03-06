@@ -1,12 +1,17 @@
 # app/db.py
+from app.models import Base
+
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker
 from fastapi_users_db_sqlalchemy import SQLAlchemyUserDatabase
 from fastapi import Depends  # Import Depends from FastAPI
 from app.config import settings
-from app.models.user import User
-from app.models import Base
 from sqlalchemy.orm import configure_mappers
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from app.models.user import User
+
+
 
 configure_mappers()  # Ensure all mappers are set up
 
@@ -28,6 +33,7 @@ async def get_async_session() -> AsyncSession:
 
 # Dependency to get the user database
 async def get_user_db(session: AsyncSession = Depends(get_async_session)):
+    from app.models.user import User  # Lazy import to avoid circular dependency
     yield SQLAlchemyUserDatabase(session, User)
 
 

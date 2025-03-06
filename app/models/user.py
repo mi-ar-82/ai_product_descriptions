@@ -1,8 +1,9 @@
 # File: app/models/user.py
+from app.models import Base
+
 from sqlalchemy import Column, String, Boolean, DateTime, Integer
 from datetime import datetime
 from fastapi_users_db_sqlalchemy import SQLAlchemyBaseUserTable
-from app.models import Base
 from sqlalchemy.orm import relationship
 from pydantic import ConfigDict
 
