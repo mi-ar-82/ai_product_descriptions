@@ -1,6 +1,6 @@
 # File: app/users.py
 
-from fastapi import Depends
+from fastapi import Depends, HTTPException
 from fastapi_users import BaseUserManager, IntegerIDMixin
 from fastapi_users_db_sqlalchemy import SQLAlchemyUserDatabase
 from pydantic import EmailStr, BaseModel, ConfigDict

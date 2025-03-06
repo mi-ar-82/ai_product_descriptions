@@ -8,9 +8,10 @@ from fastapi.responses import RedirectResponse
 from starlette.middleware.sessions import SessionMiddleware
 from fastapi.templating import Jinja2Templates
 
+from .models import Base
+
 from app.config import settings
 from app.db import engine
-from app.models import Base
 from app.routes import router as main_router
 from app.routes.settings import router as settings_router
 from app.routes.download import router as download_router

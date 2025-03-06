@@ -1,9 +1,7 @@
 # File: app/services/csv_validation.py
 from pydantic import BaseModel, Field, ValidationError
 from typing import List, Dict
-import logging
 
-logger = logging.getLogger(__name__)
 
 
 class ProductCSVRow(BaseModel):
