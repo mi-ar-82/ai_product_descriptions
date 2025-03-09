@@ -41,6 +41,7 @@ async def dashboard(
 
         return templates.TemplateResponse("dashboard.html", {
             "request": request,
+            "user": user,  # Pass the user directly
             "files": files,
             "settings": current_settings
         })

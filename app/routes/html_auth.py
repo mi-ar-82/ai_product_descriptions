@@ -81,10 +81,10 @@ async def login(
                 "login.html", {"request": request, "error": "Invalid credentials"}
             )
         # Redirect to the dashboard after a successful login
-        #redirect_url = "/dashboard"
-        #print("Debug: Redirecting to:", redirect_url, "with type:", type(redirect_url))
-        #return RedirectResponse(url=redirect_url, status_code=status.HTTP_303_SEE_OTHER)
-        #return user
+        redirect_url = "/dashboard"
+        print("Debug: Redirecting to:", redirect_url, "with type:", type(redirect_url))
+        return RedirectResponse(url=redirect_url, status_code=status.HTTP_303_SEE_OTHER)
+
     except Exception as e:
         print("Debug: Login failed:", e)
         return templates.TemplateResponse(
@@ -101,6 +101,10 @@ async def get_current_user(user: User = Depends(basic_auth)):
 @router.get("/logout")
 async def logout(request: Request):
     print("Debug: Logout initiated")
-    response = RedirectResponse(url="/login", status_code=302)
+    # First, create a response that will clear credentials
+    response = RedirectResponse(url = "/login", status_code = 302)
+    # Clear the session cookie
     response.delete_cookie("session")
+    # Add a header to invalidate HTTP Basic Auth credentials in browser
+    response.headers["WWW-Authenticate"] = 'Basic realm="Logout"'
     return response
