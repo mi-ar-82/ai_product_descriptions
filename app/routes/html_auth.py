@@ -74,15 +74,17 @@ async def login(
     print("Debug: Password type:", type(password))  # Debug print for data type
     try:
         user = await usermanager.authenticate(email, password)
+        print(type(user))
         print("Debug: Authenticated user:", user)
         if not user:
             return templates.TemplateResponse(
                 "login.html", {"request": request, "error": "Invalid credentials"}
             )
         # Redirect to the dashboard after a successful login
-        redirect_url = "/dashboard"
-        print("Debug: Redirecting to:", redirect_url, "with type:", type(redirect_url))
-        return RedirectResponse(url=redirect_url, status_code=status.HTTP_303_SEE_OTHER)
+        #redirect_url = "/dashboard"
+        #print("Debug: Redirecting to:", redirect_url, "with type:", type(redirect_url))
+        #return RedirectResponse(url=redirect_url, status_code=status.HTTP_303_SEE_OTHER)
+        #return user
     except Exception as e:
         print("Debug: Login failed:", e)
         return templates.TemplateResponse(
