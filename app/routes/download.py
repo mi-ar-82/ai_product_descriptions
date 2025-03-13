@@ -22,7 +22,10 @@ async def download_products_output(
         result = await session.execute(
             select(Product).where(Product.status == "Completed")
         )
+        print("Debug: Product query result type:", type(result))
         products = result.scalars().all()
+        print("Debug: Retrieved products count:", len(products))
+        print("Debug: Products type:", type(products))
 
         if not products:
             raise HTTPException(status_code=404, detail="No processed products found.")

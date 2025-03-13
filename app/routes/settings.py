@@ -28,7 +28,7 @@ async def get_settings(
         user: dict = Depends(basic_auth),
         session: AsyncSession = Depends(get_async_session)
 ):
-    print(f"Debug: Loading settings for user {user.id}")
+    print(f"Debug: Fetching (from db) settings for user {user.id}")
     try:
         result = await session.execute(
             select(Setting)
@@ -37,7 +37,10 @@ async def get_settings(
         )
         settings = result.scalar_one_or_none()
         print(f"Debug: Settings data type: {type(settings)}")
-
+        if settings is not None:
+            print("Debug: Settings content:", settings.__dict__)
+        else:
+            print("Debug: No settings found for user")
         return templates.TemplateResponse("settings.html", {
             "request": request,
             "settings": settings,
@@ -56,7 +59,7 @@ async def post_settings(
         temperature: str = Form(...),
         max_tokens: int = Form(...),
         response_max_length: str = Form(...),
-        base_prompt_type: str = Form(...),  # Get the selected prompt type
+        base_prompt_type: str = Form(...),
         user: dict = Depends(basic_auth),
         session: AsyncSession = Depends(get_async_session)
 ):
@@ -66,50 +69,62 @@ async def post_settings(
     print(f"Debug: Form data - base_prompt_type: {type(base_prompt_type)}")
 
     try:
-        # Validate inputs
-        if model not in ["gpt-4o", "gpt-4", "gpt-3.5-turbo"]:
+        # Validate inputs (validation code remains unchanged)
+        if model not in ["gpt-4o-mini"]:
             raise ValueError("Invalid model selection")
-
         if not tone.strip():
             raise ValueError("Tone cannot be empty")
-
         try:
             temp = float(temperature)
             if temp < 0 or temp > 2:
                 raise ValueError("Temperature must be between 0 and 2")
         except ValueError:
             raise ValueError("Temperature must be a valid number")
-
-        if max_tokens < 100 or max_tokens > 4000:
-            raise ValueError("Max tokens must be between 100 and 4000")
-
+        if max_tokens < 100 or max_tokens > 2000:
+            raise ValueError("Max tokens must be between 100 and 2000")
         if response_max_length not in ["short", "medium", "long"]:
             raise ValueError("Invalid response length")
-
         if base_prompt_type not in PREDEFINED_PROMPTS:
             raise ValueError("Invalid prompt type selection")
 
-        # Get the selected predefined prompt
         base_default_prompt = PREDEFINED_PROMPTS[base_prompt_type]
 
-        # Create new settings entry
-        new_settings = Setting(
-            user_id = user.id,
-            model = model,
-            tone = tone,
-            temperature = temperature,
-            max_tokens = max_tokens,
-            response_max_length = response_max_length,
-            base_prompt_type = base_prompt_type,
-            base_default_prompt = base_default_prompt,
-            created_at = datetime.utcnow(),
-            updated_at = datetime.utcnow()
+        # Check if settings already exist for the user
+        result = await session.execute(
+            select(Setting).where(Setting.user_id == user.id)
         )
+        existing_settings = result.scalar_one_or_none()
+        print(f"Debug: existing_settings type: {type(existing_settings)}")
 
-        session.add(new_settings)
+        if existing_settings:
+            print("Debug: Updating existing settings")
+            existing_settings.model = model
+            existing_settings.tone = tone
+            existing_settings.temperature = temperature
+            existing_settings.max_tokens = max_tokens
+            existing_settings.response_max_length = response_max_length
+            existing_settings.base_prompt_type = base_prompt_type
+            existing_settings.base_default_prompt = base_default_prompt
+            existing_settings.updated_at = datetime.utcnow()
+        else:
+            print("Debug: Creating new settings record")
+            new_settings = Setting(
+                user_id = user.id,
+                model = model,
+                tone = tone,
+                temperature = temperature,
+                max_tokens = max_tokens,
+                response_max_length = response_max_length,
+                base_prompt_type = base_prompt_type,
+                base_default_prompt = base_default_prompt,
+                created_at = datetime.utcnow(),
+                updated_at = datetime.utcnow()
+            )
+            session.add(new_settings)
+
         await session.commit()
-        print(f"Debug: Settings saved with ID {new_settings.id}")
-
+        # Debug print to check final settings type (either updated or newly created)
+        print("Debug: Settings saved successfully for user", user.id)
         return RedirectResponse(url = "/dashboard", status_code = 303)
     except ValueError as e:
         print(f"Validation error: {str(e)}")

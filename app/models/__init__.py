@@ -1,5 +1,5 @@
 from sqlalchemy.orm import declarative_base
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, Text, ForeignKey
+from sqlalchemy import Column, Integer, String, Boolean, DateTime, Text, ForeignKey, UniqueConstraint
 from sqlalchemy.orm import declarative_base, relationship
 from datetime import datetime, timezone
 
@@ -44,20 +44,21 @@ class Product(Base):
     uploaded_file = relationship("UploadedFile")
 
 # Settings table
-# File: app/models/__init__.py
 class Setting(Base):
     __tablename__ = "settings"
-    id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    model = Column(String, default="gpt-4o")
+    __table_args__ = (UniqueConstraint("user_id", name = "uq_user_settings"),)
+
+    id = Column(Integer, primary_key = True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable = False)
+    model = Column(String, default = "gpt-4o-mini")
     tone = Column(String)
     temperature = Column(String)
     max_tokens = Column(Integer)
     response_max_length = Column(String)
-    base_prompt_type = Column(String, default="conversion")  # Field to store selected prompt type
+    base_prompt_type = Column(String, default = "conversion")
     base_default_prompt = Column(Text)
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime, default = datetime.utcnow)
+    updated_at = Column(DateTime, default = datetime.utcnow, onupdate = datetime.utcnow)
 
     # Relationship to User model
     user = relationship("User", back_populates="settings")

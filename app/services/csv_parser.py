@@ -35,20 +35,18 @@ def parse_csv(df:pd.DataFrame) -> pd.DataFrame:
 
     # Convert DataFrame rows to a list of dictionaries for validation
     data = df[required_columns].astype(str).to_dict(orient='records')  # Force string type
-    print("Debug:")
-    print(type(data))
-    print(data)
-    print("Debug end")
+    print("Debug: Converted CSV rows to list, type of data:", type(data))
+
 
 
     # Validate rows using Pydantic
     validated_data = validate_csv_rows(data)
     print(f"Debug: CSV data validated successfully with {len(validated_data)} rows")
+    print("Debug: Validated CSV data returned type:", type(validated_data))
 
 
     # Return validated data as a DataFrame
 
     print("------------------------")
-    print(type(validated_data))
-    print(validated_data)
+
     return data

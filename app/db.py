@@ -29,6 +29,7 @@ print("Debug: Async database engine created")
 async def get_async_session() -> AsyncSession:
     print("Debug: Creating new async database session")
     async with async_session_maker() as session:
+        print("Debug: Async session type:", type(session))
         yield session
 
 # Dependency to get the user database

@@ -23,6 +23,7 @@ def validate_csv_rows(data: List[Dict]) -> List[ProductCSVRow]:
 
     print(type(enumerate(data)))
     for index, row in enumerate(data):
+        print(f"Debug: Validating row {index}, type: {type(row)}")
         print(type(index))
         print(type(row))
         try:

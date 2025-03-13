@@ -30,11 +30,15 @@ async def process_products(
             select(Product).where(Product.status == "Pending")
         )
         products_to_process = products_result.scalars().all()
+        print("Debug: Number of pending products:", len(products_to_process))
+        print("Debug: Pending products data type:", type(products_to_process))
 
         if not products_to_process:
             return {"message": "No products pending processing."}
 
         for product in products_to_process:
+            print("Debug: Processing product with handle:", product.handle)
+            print("Debug: Product data type:", type(product))
             # Construct messages array with detail: low for images
             messages = [
                 {"role": "user", "content": user_settings.base_default_prompt},
@@ -78,7 +82,7 @@ async def process_products(
             session.add(product)
 
         await session.commit()
-
+        print("Debug: Commit successful after processing products.")
         return {"message": f"Successfully processed {len(products_to_process)} products."}
 
     except Exception as e:
