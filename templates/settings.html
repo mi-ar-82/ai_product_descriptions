@@ -6,31 +6,17 @@
   <h2>Processing Settings Configuration</h2>
 
   {% if error %}
-  <div class="error-message">{{ error }}</div>
+    <div class="error-message">{{ error }}</div>
   {% endif %}
 
   <form method="post" action="/settings">
     <div class="form-group">
-      <label for="photo_resolution">Photo Resolution:</label>
-      <select id="photo_resolution" name="photo_resolution" required>
-        <option value="720p" {% if settings and settings.photo_resolution == '720p' %}selected{% endif %}>720p</option>
-        <option value="1080p" {% if settings and settings.photo_resolution == '1080p' %}selected{% endif %}>1080p</option>
+      <label for="model">AI Model:</label>
+      <select id="model" name="model" required>
+        <option value="gpt-4o" {% if settings and settings.model == 'gpt-4o' %}selected{% endif %}>GPT-4o</option>
+        <option value="gpt-4" {% if settings and settings.model == 'gpt-4' %}selected{% endif %}>GPT-4</option>
+        <option value="gpt-3.5-turbo" {% if settings and settings.model == 'gpt-3.5-turbo' %}selected{% endif %}>GPT-3.5 Turbo</option>
       </select>
-    </div>
-
-    <div class="form-group">
-      <label for="file_size_limit">File Size Limit:</label>
-      <select id="file_size_limit" name="file_size_limit" required>
-        <option value="64kB" {% if settings and settings.file_size_limit == '64kB' %}selected{% endif %}>64kB</option>
-        <option value="128kB" {% if settings and settings.file_size_limit == '128kB' %}selected{% endif %}>128kB</option>
-      </select>
-    </div>
-
-    <div class="form-group">
-      <label for="openai_prompt_base">Base Prompt:</label>
-      <textarea id="openai_prompt_base" name="openai_prompt_base" required>
-        {% if settings %}{{ settings.openai_prompt_base }}{% endif %}
-      </textarea>
     </div>
 
     <div class="form-group">
@@ -41,16 +27,50 @@
     </div>
 
     <div class="form-group">
-      <label for="length">Length:</label>
-      <select id="length" name="length" required>
-        <option value="short" {% if settings and settings.length == 'short' %}selected{% endif %}>Short</option>
-        <option value="medium" {% if settings and settings.length == 'medium' %}selected{% endif %}>Medium</option>
-        <option value="long" {% if settings and settings.length == 'long' %}selected{% endif %}>Long</option>
+      <label for="temperature">Temperature (0.0 - 2.0):</label>
+      <input type="number" step="0.1" id="temperature" name="temperature"
+             value="{% if settings %}{{ settings.temperature }}{% else %}0.7{% endif %}"
+             min="0" max="2" required>
+    </div>
+
+    <div class="form-group">
+      <label for="max_tokens">Max Tokens (100 - 4000):</label>
+      <input type="number" id="max_tokens" name="max_tokens"
+             value="{% if settings %}{{ settings.max_tokens }}{% else %}1000{% endif %}"
+             min="100" max="4000" required>
+    </div>
+
+    <div class="form-group">
+      <label for="response_max_length">Response Length:</label>
+      <select id="response_max_length" name="response_max_length" required>
+        <option value="short" {% if settings and settings.response_max_length == 'short' %}selected{% endif %}>Short</option>
+        <option value="medium" {% if settings and settings.response_max_length == 'medium' %}selected{% endif %}>Medium</option>
+        <option value="long" {% if settings and settings.response_max_length == 'long' %}selected{% endif %}>Long</option>
       </select>
     </div>
 
-    <button type="submit" class="btn-save">Save Settings</button>
-    <a href="/dashboard" class="btn-cancel">Cancel</a>
+    <!-- Prompt Selection -->
+    <div class="form-group">
+      <label>Base Prompt Type:</label>
+      <div class="prompt-options">
+        {% for key, prompt in predefined_prompts.items() %}
+          <div class="prompt-option">
+            <input type="radio" id="{{ key }}" name="base_prompt_type"
+                   value="{{ key }}" {% if settings.base_prompt_type == key %}checked{% endif %}>
+            <label for="{{ key }}">{{ key|title }}</label>
+            <div class="prompt-text">{{ prompt }}</div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Form Actions -->
+    <div class='form-actions'>
+      <button type='submit' class='btn-save'>Save Settings</button>
+      <a href='/dashboard' class='btn-cancel'>Cancel</a>
+    </div>
+
   </form>
 </div>
+
 {% endblock %}

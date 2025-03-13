@@ -5,42 +5,63 @@
 <div class="dashboard">
   <h2>Welcome, {{ user.email }}</h2>
 
-  <!-- Upload Section -->
-  <section class="upload-section">
-    <h3>Recent Uploads</h3>
-    <div class="file-list">
-      {% for file in files %}
-      <div class="file-item">
-        <span class="filename">{{ file.file_name }}</span>
-        <span class="upload-date">{{ file.upload_date }}</span>
-        <span class="status {{ file.status|lower }}">{{ file.status }}</span>
+  <!-- CSV Upload Form -->
+  <section class="upload-form-section">
+    <h3>Upload Product CSV</h3>
+    <form action="/upload-csv" method="post" enctype="multipart/form-data">
+      <div class="form-group">
+        <label for="file">Select Shopify CSV file:</label>
+        <input type="file" id="file" name="file" accept=".csv" required>
       </div>
-      {% else %}
-      <p>No files uploaded yet</p>
-      {% endfor %}
-    </div>
+      <button type="submit" class='btn-upload'>Upload and Process</button>
+    </form>
+  </section>
+
+  <!-- Recent Uploads -->
+  <section class='upload-section'>
+    <h3>Recent Uploads</h3>
+    {% for file in files %}
+      <div class='file-item'>
+        <span>{{ file.file_name }}</span>
+        <span>{{ file.upload_date }}</span>
+        <span>{{ file.status }}</span>
+      </div>
+    {% else %}
+      No files uploaded yet.
+    {% endfor %}
   </section>
 
   <!-- Current Settings -->
-  <section class="current-settings">
+  <section class='current-settings'>
     <h3>Current Configuration</h3>
     {% if settings %}
-    <dl>
-      <dt>Photo Resolution:</dt>
-      <dd>{{ settings.photo_resolution }}</dd>
-      <dt>File Size Limit:</dt>
-      <dd>{{ settings.file_size_limit }}</dd>
-      <dt>AI Prompt Base:</dt>
-      <dd class="prompt-preview">{{ settings.openai_prompt_base|truncate(100) }}</dd>
-      <dt>Tone:</dt>
-      <dd>{{ settings.tone }}</dd>
-      <dt>Length:</dt>
-      <dd>{{ settings.length }}</dd>
-    </dl>
+      <dl>
+        <dt>Model:</dt><dd>{{settings.model}}</dd>
+        <dt>Tone:</dt><dd>{{settings.tone}}</dd>
+        <dt>Temperature:</dt><dd>{{settings.temperature}}</dd>
+        <dt>Max Tokens:</dt><dd>{{settings.max_tokens}}</dd>
+        <dt>Response Length:</dt><dd>{{settings.response_max_length}}</dd>
+        <dt>Prompt Type:</dt><dd>{{settings.base_prompt_type|title}}</dd>
+      </dl>
     {% else %}
-    <p>No settings configured yet</p>
+      No current configuration.
     {% endif %}
-    <a href="/settings" class="btn-configure">Configure Settings</a>
+    <a href='/settings' class='btn-configure'>Configure Settings</a>
   </section>
+
+  <!-- Processing Button -->
+  <section class='process-products-section'>
+    <form action='/process-products' method='post'>
+      <button type='submit' class='btn-process'>🚀 Start Product Processing</button>
+    </form>
+  </section>
+
+  <!-- Download Processed Products CSV -->
+  <section class="download-section">
+    <h3>Download Processed Products CSV</h3>
+    <a href="{{ url_for('download_products_output') }}" class="btn-download">Download Processed Products CSV</a>
+  </section>
+
 </div>
+
 {% endblock %}

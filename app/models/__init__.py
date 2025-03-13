@@ -26,37 +26,42 @@ class Product(Base):
 
     id = Column(Integer, primary_key=True)
     uploadedfileid = Column(Integer, ForeignKey("uploaded_files.id"), nullable=False)
-    status = Column(String)  # Status of processing (e.g., Success, Failed)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)  # Add this line
+    status = Column(String)
     created_at = Column(DateTime, default=datetime.utcnow)
-    handle = Column(String)  # New field for product handle
-    input_title = Column(String)  # Original title of the product
-    input_body = Column(Text)  # Original body content (HTML)
-    input_image = Column(String)  # URL of the input image
-    input_seo_title = Column(String)  # Original SEO title
-    input_seo_descr = Column(Text)  # Original SEO description
-    base64_filepath = Column(String)  # Path to Base64-encoded image
-    cleaned_body = Column(Text)  # Cleaned body content (plain text)
-    output_body = Column(Text)  # Processed product description
-    output_seo_title = Column(String)  # Processed SEO title
-    output_seo_descr = Column(Text)  # Processed SEO description
+    handle = Column(String)
+    input_title = Column(String)
+    input_body = Column(Text)
+    input_image = Column(String)
+    input_seo_title = Column(String)
+    input_seo_descr = Column(Text)
+    base64_filepath = Column(String)
+    cleaned_body = Column(Text)
+    output_body = Column(Text)
+    output_seo_title = Column(String)
+    output_seo_descr = Column(Text)
 
     uploaded_file = relationship("UploadedFile")
 
 # Settings table
+# File: app/models/__init__.py
 class Setting(Base):
     __tablename__ = "settings"
-    id = Column(Integer, primary_key = True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable = False)
-    photo_resolution = Column(String)
-    file_size_limit = Column(String)
-    openai_prompt_base = Column(Text)
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    model = Column(String, default="gpt-4o")
     tone = Column(String)
-    length = Column(String)
-    created_at = Column(DateTime, default = datetime.utcnow)
-    updated_at = Column(DateTime, default = datetime.utcnow, onupdate = datetime.utcnow)
+    temperature = Column(String)
+    max_tokens = Column(Integer)
+    response_max_length = Column(String)
+    base_prompt_type = Column(String, default="conversion")  # Field to store selected prompt type
+    base_default_prompt = Column(Text)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     # Relationship to User model
-    user = relationship("User", back_populates = "settings")
+    user = relationship("User", back_populates="settings")
+
 
 # FailedEntries table
 class FailedEntry(Base):

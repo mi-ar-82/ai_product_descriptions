@@ -1,113 +1,150 @@
-/* File: static/styles.css */
-/* Updated for dark mode */
-
+/* Global Styles */
 body {
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: Arial, sans-serif;
+  background-color: #121212;
+  color: #ffffff;
   margin: 0;
   padding: 0;
-  background-color: #121212; /* Dark background */
-  color: #ffffff;            /* White text */
-}
-
-header {
-  background-color: #1f1f1f;
-  color: #ffffff;
-  padding: 1rem;
-  text-align: center;
 }
 
 main {
-  max-width: 800px;
-  margin: 2rem auto;
+  max-width: 900px;
+  margin: 0 auto;
   padding: 1rem;
-  background-color: #1e1e1e;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.9);
 }
 
-footer {
-  background-color: #1f1f1f;
-  color: #ffffff;
-  text-align: center;
-  padding: 0.5rem;
-  position: fixed;
-  bottom: 0;
+/* Dashboard & Settings Sections */
+.dashboard section,
+.settings {
+  background-color: #2a2a2a;
+  padding: 1.5rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+}
+
+/* Form Groups */
+.form-group {
+  margin-bottom: 1rem;
+}
+
+/* Labels & Inputs */
+label {
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+input[type="text"],
+input[type="number"],
+select,
+textarea {
   width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #444;
+  border-radius: 4px;
+  background-color: #1e1e1e;
+  color: #ffffff;
 }
 
-a {
-  color: #64ffda; /* A contrasting accent color */
-  text-decoration: none;
+/* Buttons Alignment & Styling */
+.form-actions {
+  display: flex;
+  justify-content: flex-start;
+  gap: 0.5rem;
 }
 
-button {
+.btn-save,
+.btn-cancel,
+.btn-upload,
+.btn-configure,
+.btn-process {
+  padding: 0.75rem 1rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.btn-save {
+  background-color: #4caf50;
+  color: #fff;
+}
+
+.btn-cancel {
+  background-color: #f44336;
+  color: #fff;
+}
+
+.btn-upload {
+  background-color: #2196f3;
+  color: #fff;
+}
+
+.btn-configure {
+  background-color: #ff9800;
+  color: #fff;
+}
+
+.btn-process {
+  background-color: #9c27b0;
+  color: #fff;
+}
+
+/* Current Settings Alignment */
+.current-settings dl {
+  display: grid;
+  grid-template-columns: auto auto;
+  gap: 0.5rem 1rem;
+}
+
+.current-settings dt {
+  font-weight: bold;
+}
+
+.current-settings dd {
+  margin: 0;
+}
+
+/* Prompt Options */
+.prompt-options {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.prompt-option {
+  background: #333;
+  padding: 0.75rem;
+  border-radius: 4px;
+  border: 1px solid #444;
+}
+
+.prompt-text {
+  font-size: 0.85rem;
+  padding: 0.5rem;
+  background: #222;
+  border-radius: 4px;
+  color: #ccc;
+  white-space: pre-wrap;
+}
+
+/* Download Button */
+.btn-download {
   background-color: #64ffda;
   color: #121212;
   border: none;
-  padding: 0.5rem 1rem;
+  padding: 0.6rem 1rem;
   cursor: pointer;
   border-radius: 4px;
+  text-decoration: none;
+  display: inline-block;
+  margin-top: 1rem;
 }
 
-input, textarea {
-  font-family: Arial, Helvetica, sans-serif;
-  padding: 0.5rem;
-  border: 1px solid #333333;
-  border-radius: 4px;
-  background-color: #1e1e1e;
-  color: #ffffff;
+.btn-download:hover {
+  background-color: #52d9b9;
 }
 
-h1, h2, h3, h4, h5, h6 {
-  font-family: Arial, Helvetica, sans-serif;
-}
-
-
-/* Dashboard Styles */
-.dashboard section {
-  margin: 2rem 0;
-  padding: 1.5rem;
-  background: #2a2a2a;
-  border-radius: 8px;
-}
-
-.file-list .file-item {
-  display: flex;
-  justify-content: space-between;
-  padding: 0.8rem;
-  margin: 0.5rem 0;
-  background: #333;
-  border-radius: 4px;
-}
-
-.status {
-  padding: 0.2rem 0.5rem;
-  border-radius: 12px;
-  font-size: 0.8rem;
-}
-
-.status.processing { background: #ffd70033; color: #ffd700; }
-.status.completed { background: #90ee9033; color: #90ee90; }
-.status.failed { background: #ff000033; color: #ff0000; }
-
-/* Settings Form */
-.settings .form-group {
-  margin: 1.2rem 0;
-}
-
-.settings select,
-.settings input[type="text"],
-.settings textarea {
-  width: 100%;
-  padding: 0.8rem;
-  margin-top: 0.5rem;
-}
-
-.settings textarea {
-  height: 150px;
-  resize: vertical;
-}
-
-.btn-save, .btn-cancel {
-  padding: 0.8rem 1.5rem;
-  margin-right: 1rem;
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .current-settings dl {
+    grid-template-columns: 1fr;
+  }
 }

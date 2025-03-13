@@ -81,9 +81,14 @@ async def login(
                 "login.html", {"request": request, "error": "Invalid credentials"}
             )
         # Redirect to the dashboard after a successful login
-        redirect_url = "/dashboard"
-        print("Debug: Redirecting to:", redirect_url, "with type:", type(redirect_url))
-        return RedirectResponse(url=redirect_url, status_code=status.HTTP_303_SEE_OTHER)
+        response = RedirectResponse(url = "/dashboard", status_code = status.HTTP_303_SEE_OTHER)
+
+        # Set the Authorization header for Basic Auth
+        import base64
+        auth_string = f"{email}:{password}"
+        encoded_auth = base64.b64encode(auth_string.encode()).decode()
+        response.headers["Authorization"] = f"Basic {encoded_auth}"
+        return response
 
     except Exception as e:
         print("Debug: Login failed:", e)

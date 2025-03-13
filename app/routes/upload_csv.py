@@ -56,13 +56,14 @@ async def upload_csv(
         # Create products
         products = [
             Product(
-                uploadedfileid = uploaded_file.id,  # Critical fix
+                uploadedfileid = uploaded_file.id,
+                user_id = user.id,
                 handle = row["Handle"],
                 input_title = row["Title"],
                 input_body = row["Body (HTML)"],
                 input_image = row["Image Src"],
-                input_seo_title = row["SEO Title"],  # Fixed line
-                input_seo_descr = row["SEO Description"],  # Fixed line
+                input_seo_title = row["SEO Title"],
+                input_seo_descr = row["SEO Description"],
                 status = "Pending",
                 created_at = datetime.now(timezone.utc)
             )

@@ -4,9 +4,11 @@ from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.future import select
 from sqlalchemy.ext.asyncio import AsyncSession
+import traceback
 from app.models import UploadedFile, Setting
 from app.db import get_async_session
 from app.auth import basic_auth
+from app.models.user import User
 
 router = APIRouter()
 templates = Jinja2Templates(directory="templates")
@@ -14,7 +16,7 @@ templates = Jinja2Templates(directory="templates")
 @router.get("/dashboard", response_class=HTMLResponse)
 async def dashboard(
     request: Request,
-    user: dict = Depends(basic_auth),
+    user: User = Depends(basic_auth),
     session: AsyncSession = Depends(get_async_session)
 ):
     print(f"Debug: Rendering dashboard for user {user.id}")
@@ -47,4 +49,5 @@ async def dashboard(
         })
     except Exception as e:
         print(f"Error loading dashboard: {str(e)}")
-        raise HTTPException(status_code=500, detail="Dashboard load failed")
+        traceback.print_exc()  # This line is crucial for debugging
+        raise HTTPException(status_code = 500, detail = f"Dashboard load failed: {str(e)}")
