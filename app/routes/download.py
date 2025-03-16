@@ -15,21 +15,29 @@ from app.auth import basic_auth
 router = APIRouter()
 
 
-
-
-@router.get("/download/products_output.csv")
+@router.get("/download/products_output/{file_id}.csv", name="download_products_output")
 async def download_products_output(
+        file_id: int,
         user = Depends(basic_auth),
         session: AsyncSession = Depends(get_async_session)
 ):
     try:
-        print("Debug: Starting products output CSV download")
-        print("Debug: Session type:", type(session))
+        # Verify the file belongs to this user and get filename
+        file_result = await session.execute(
+            select(UploadedFile).where(
+                (UploadedFile.id == file_id) &
+                (UploadedFile.user_id == user.id)
+            )
+        )
+        uploaded_file = file_result.scalar_one_or_none()
 
-        # Fetch processed products for the current user
+        if not uploaded_file:
+            raise HTTPException(status_code = 404, detail = "File not found or access denied.")
+
+        # Fetch processed products for this specific file only
         result = await session.execute(
             select(Product).where(
-                (Product.user_id == user.id) &
+                (Product.uploadedfileid == file_id) &
                 (Product.status == "Completed")
             )
         )
@@ -62,7 +70,7 @@ async def download_products_output(
         if os.path.exists(original_file_path):
             try:
                 print(f"Debug: Found original file at {original_file_path}")
-                original_df = pd.read_csv(original_file_path)
+                original_df = pd.read_csv(original_file_path, encoding = "utf-8")
                 print(f"Debug: Original CSV loaded with {len(original_df)} rows and {len(original_df.columns)} columns")
             except Exception as e:
                 print(f"Debug: Error reading original file: {e}")
@@ -133,7 +141,7 @@ async def download_products_output(
 
         # Convert to CSV
         csv_buffer = StringIO()
-        original_df.to_csv(csv_buffer, index=False)
+        original_df.to_csv(csv_buffer, index=False, encoding="utf-8")
 
         csv_buffer.seek(0)
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")

@@ -30,13 +30,14 @@
   </section>
 
   <!-- Recent Uploads -->
-  <section class='upload-section'>
+  <section class="upload-section">
     <h3>Recent Uploads</h3>
     {% for file in files %}
       <div class='file-item'>
         <span>{{ file.file_name }}</span>
         <span>{{ file.upload_date }}</span>
         <span>{{ file.status }}</span>
+        <a href="{{ url_for('download_products_output', file_id=file.id) }}" class="btn-download">Download</a>
       </div>
     {% else %}
       No files uploaded yet.
@@ -68,10 +69,19 @@
     </form>
   </section>
 
-  <!-- Download Processed Products CSV -->
+    <!-- Download Processed Products CSV -->
   <section class="download-section">
     <h3>Download Processed Products CSV</h3>
-    <a href="{{ url_for('download_products_output') }}" class="btn-download">Download Processed Products CSV</a>
+    {% if files %}
+      {% for file in files %}
+        <div class="file-download-item">
+          <span>{{ file.file_name }}</span>
+          <a href="{{ url_for('download_products_output', file_id=file.id) }}" class="btn-download">Download</a>
+        </div>
+      {% endfor %}
+    {% else %}
+      <p>No files available for download.</p>
+    {% endif %}
   </section>
 
 </div>

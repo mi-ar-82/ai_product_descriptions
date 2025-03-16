@@ -50,7 +50,7 @@ async def upload_csv(
         # Save original file for later retrieval
         temp_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "temp")
         os.makedirs(temp_dir, exist_ok = True)
-        file_path = os.path.join(temp_dir, file.filename)
+        file_path = os.path.join(temp_dir, f"{uploaded_file.id}_{file.filename}")
 
         print(f"Debug: Saving original file to {file_path}")
         with open(file_path, "w", encoding = "utf-8") as f:
