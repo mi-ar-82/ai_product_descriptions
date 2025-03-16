@@ -6,14 +6,16 @@ from app.db import get_async_session
 from app.auth import basic_auth
 from app.models import Product, Setting
 from app.services.openai_service import generate_product_description
+from fastapi.responses import RedirectResponse
+from urllib.parse import quote
 
 router = APIRouter()
 
 
 @router.post("/process-products")
 async def process_products(
-    user=Depends(basic_auth),
-    session: AsyncSession=Depends(get_async_session)
+        user = Depends(basic_auth),
+        session: AsyncSession = Depends(get_async_session)
 ):
     try:
         # Fetch user's latest settings
@@ -23,7 +25,10 @@ async def process_products(
         user_settings = settings_result.scalar_one_or_none()
 
         if not user_settings:
-            raise HTTPException(status_code=400, detail="User settings not configured.")
+            return RedirectResponse(
+                url = "/dashboard?error=User settings not configured.",
+                status_code = 303
+            )
 
         # Fetch products needing processing (status='Pending')
         products_result = await session.execute(
@@ -34,57 +39,78 @@ async def process_products(
         print("Debug: Pending products data type:", type(products_to_process))
 
         if not products_to_process:
-            return {"message": "No products pending processing."}
+            return RedirectResponse(
+                url = "/dashboard?message=No products pending processing.",
+                status_code = 303
+            )
 
         for product in products_to_process:
             print("Debug: Processing product with handle:", product.handle)
             print("Debug: Product data type:", type(product))
-            # Construct messages array with detail: low for images
-            messages = [
-                {"role": "user", "content": user_settings.base_default_prompt},
-                {"role": "user", "content": f"Product Title: {product.input_title}"},
-                {"role": "user", "content": f"Existing Description: {product.input_body}"}
-            ]
 
-            # Include image with hardcoded detail: low
+            # Create properly formatted messages for OpenAI
             if product.input_image:
-                messages_with_image = {
-                    "role": "user",
-                    "content": [
-                        {"type": "text", "text": f"Analyze the following product image and generate a description."},
-                        {
-                            "type": "image_url",
-                            "image_url": {
-                                "url": product.input_image,
-                                "detail": "low"
+                # Properly structure multimodal content
+                messages = [
+                    {
+                        "role": "user",
+                        "content": [
+                            {"type": "text", "text": user_settings.base_default_prompt},
+                            {"type": "text", "text": f"Product Title: {product.input_title}"},
+                            {"type": "text", "text": f"Existing Description: {product.input_body}"},
+                            {
+                                "type": "image_url",
+                                "image_url": {
+                                    "url": product.input_image,
+                                    "detail": "low"
+                                }
                             }
-                        }
-                    ]
-                }
-                messages = messages_with_image
+                        ]
+                    }
+                ]
             else:
-                messages_with_image = {"role": "user", "content": prompt}
+                # For text-only products
+                messages = [
+                    {
+                        "role": "user",
+                        "content": f"{user_settings.base_default_prompt}\n\nProduct Title: {product.input_title}\n\nExisting Description: {product.input_body}"
+                    }
+                ]
 
-            print("Debug: Messages prepared for OpenAI:", messages_with_image)
-            print("Debug: Data type of messages_with_image:", type(messages_with_image))
+            print("Debug: Messages prepared for OpenAI:", messages)
+            print("Debug: Data type of messages:", type(messages))
 
             # Generate description using OpenAI API
             generated_description = await generate_product_description(
-                prompt=messages_with_image,
-                model=user_settings.model,
-                temperature=float(user_settings.temperature),
-                max_tokens=user_settings.max_tokens,
+                messages = messages,
+                model = user_settings.model,
+                temperature = float(user_settings.temperature),
+                max_tokens = user_settings.max_tokens,
             )
 
-            # Update product with generated description and mark as completed
+            # Update product fields
             product.output_body = generated_description
+            product.output_seo_title = product.input_title  # Using input title as SEO title
+            product.output_seo_descr = generated_description[
+                                       :160] if generated_description else ""  # First 160 chars for SEO description
             product.status = "Completed"
             session.add(product)
 
         await session.commit()
         print("Debug: Commit successful after processing products.")
-        return {"message": f"Successfully processed {len(products_to_process)} products."}
+
+        # Redirect to dashboard with success message instead of returning JSON
+        success_message = f"Successfully processed {len(products_to_process)} products."
+        return RedirectResponse(
+            url = f"/dashboard?message={quote(success_message)}",
+            status_code = 303
+        )
 
     except Exception as e:
         print(f"Error processing products: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        import traceback
+        traceback.print_exc()
+        return RedirectResponse(
+            url = f"/dashboard?error={quote(str(e))}",
+            status_code = 303
+        )

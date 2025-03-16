@@ -4,6 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from datetime import datetime, timezone
 from io import StringIO
 import pandas as pd
+import os
 import logging
 from pydantic import ValidationError
 from app.services.csv_validation import validate_csv_rows
@@ -19,10 +20,12 @@ from app.models.user import User  # Required for type hinting
 router = APIRouter()
 
 
+# File: app/routes/upload_csv.py
+
 @router.post("/upload-csv")
 async def upload_csv(
         file: UploadFile,
-        user: User = Depends(basic_auth),  # Add authenticated user dependency
+        user: User = Depends(basic_auth),
         session: AsyncSession = Depends(get_async_session),
 ):
     print(f"Debug: Upload initiated by user {user.id}")
@@ -42,18 +45,36 @@ async def upload_csv(
 
         # Process CSV
         contents = await file.read()
-        df = pd.read_csv(StringIO(contents.decode("utf-8")),dtype=str)
-        print("Debug: CSV read with string conversion")
-        print(f"Data types after read:\n{df.dtypes}")  # Debug output
-        print(f"Debug: CSV file read successfully with {len(df)} rows")
-        parsed_df = parse_csv(df)
-        # Convert to list of dicts and validate
-        raw_data = df.replace({pd.NA: None}).to_dict("records")
-        #print(raw_data)
-        #validated_data = validate_csv_rows(raw_data)
-        #print(f"Debug: CSV data validated successfully with {len(validated_data)} rows")
+        csv_content = contents.decode("utf-8")
 
-        # Create products
+        # Save original file for later retrieval
+        temp_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "temp")
+        os.makedirs(temp_dir, exist_ok = True)
+        file_path = os.path.join(temp_dir, file.filename)
+
+        print(f"Debug: Saving original file to {file_path}")
+        with open(file_path, "w", encoding = "utf-8") as f:
+            f.write(csv_content)
+
+        # Continue processing as before
+        df = pd.read_csv(StringIO(csv_content), dtype = str)
+        print("Debug: CSV read with string conversion")
+        print(f"Data types after read:\n{df.dtypes}")
+        print(f"Debug: CSV file read successfully with {len(df)} rows")
+
+        # Filter for rows with non-null Titles (actual products, not variants)
+        total_rows = len(df)
+        product_df = df[df["Title"].notna() & (df["Title"] != "")]
+        product_count = len(product_df)
+        variant_count = total_rows - product_count
+
+        print(f"Debug: Found {product_count} products and {variant_count} variants in CSV")
+
+        # Convert only products to list of dicts
+        raw_data = product_df.replace({pd.NA: None}).to_dict("records")
+        print(f"Debug: Processing {len(raw_data)} product rows (excluding variants)")
+
+        # Create products (only for rows with Title values)
         products = [
             Product(
                 uploadedfileid = uploaded_file.id,
@@ -70,18 +91,43 @@ async def upload_csv(
             for row in raw_data
         ]
 
-        print(products[0].handle)
+        print(f"Debug: Products to add: {len(products)}")
+        if products:
+            print(f"Debug: First product handle: {products[0].handle}")
         session.add_all(products)
         await session.commit()
         print(f"Debug: {len(products)} products added to the database")
 
-        return {"message": f"Successfully processed {len(products)} products"}
+        # Store success message in session or use query parameter for redirect
+        from fastapi.responses import RedirectResponse
+        from urllib.parse import quote
+
+        success_message = f"Successfully processed {len(products)} products (excluded {variant_count} variants)"
+        return RedirectResponse(
+            url = f"/dashboard?message={quote(success_message)}",
+            status_code = 303
+        )
 
     except ValidationError as e:
-        logger.error(f"CSV validation failed: {e}")
-        raise HTTPException(422, detail = e.errors())
+        print(f"Debug: CSV validation failed: {e}")
+        from fastapi.responses import RedirectResponse
+        return RedirectResponse(
+            url = "/dashboard?error=CSV validation failed",
+            status_code = 303
+        )
     except pd.errors.EmptyDataError:
-        raise HTTPException(400, "Empty CSV file")
+        print("Debug: Empty CSV file detected")
+        from fastapi.responses import RedirectResponse
+        return RedirectResponse(
+            url = "/dashboard?error=Empty CSV file",
+            status_code = 303
+        )
     except Exception as e:
-        logger.exception("CSV processing error")
-        raise HTTPException(500, str(e))
+        print(f"Debug: CSV processing error: {e}")
+        import traceback
+        traceback.print_exc()
+        from fastapi.responses import RedirectResponse
+        return RedirectResponse(
+            url = f"/dashboard?error={quote(str(e))}",
+            status_code = 303
+        )

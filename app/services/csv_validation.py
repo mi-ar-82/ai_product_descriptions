@@ -30,12 +30,6 @@ def validate_csv_rows(data: List[Dict]) -> List[ProductCSVRow]:
             validated_rows.append(ProductCSVRow.model_validate(row))
             print(f"Debug: Row {index} validated successfully")
         except ValidationError as e:
-            logger.error(f"Row {index} validation failed: {e}")
-            errors.append({
-                "row": index,
-                "errors": e.errors(),
-                "input_data": row
-            })
             print(f"Debug: Validation failed for row {index} with errors: {e.errors()}")
 
     if errors:

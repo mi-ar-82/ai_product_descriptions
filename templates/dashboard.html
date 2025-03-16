@@ -5,6 +5,18 @@
 <div class="dashboard">
   <h2>Welcome, {{ user.email }}</h2>
 
+  {% if request.query_params.get('message') %}
+  <div class="success-message" style="background-color: #dff0d8; color: #3c763d; padding: 15px; margin-bottom: 20px; border-radius: 4px;">
+    {{ request.query_params.get('message') }}
+  </div>
+  {% endif %}
+
+  {% if request.query_params.get('error') %}
+  <div class="error-message" style="background-color: #f2dede; color: #a94442; padding: 15px; margin-bottom: 20px; border-radius: 4px;">
+    {{ request.query_params.get('error') }}
+  </div>
+  {% endif %}
+
   <!-- CSV Upload Form -->
   <section class="upload-form-section">
     <h3>Upload Product CSV</h3>
