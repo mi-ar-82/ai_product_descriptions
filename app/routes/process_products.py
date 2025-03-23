@@ -14,7 +14,7 @@ router = APIRouter()
 
 
 @router.post("/process-products")
-async def process_products(
+async def start_ai_product_description_generation(
         user = Depends(basic_auth),
         session: AsyncSession = Depends(get_async_session)
 ):

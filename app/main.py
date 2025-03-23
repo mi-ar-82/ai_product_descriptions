@@ -71,7 +71,7 @@ templates = Jinja2Templates(
 app.include_router(main_router)
 app.include_router(settings_router)
 app.include_router(download_router)
-app.include_router(dashboard_router)
+app.include_router(dashboard_router, tags=["Dashboard"])
 app.include_router(process_products_router, tags=["Process Products"])
 
 

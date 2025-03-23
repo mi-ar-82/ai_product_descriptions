@@ -25,4 +25,7 @@ class User(SQLAlchemyBaseUserTable[int], Base):
 
     settings = relationship("Setting", back_populates = "user")
 
+def __repr__(self):
+    return f"<User(id={self.id}, email={self.email})>"
+
 print("Debug: User model defined")

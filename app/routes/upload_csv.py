@@ -23,12 +23,12 @@ router = APIRouter()
 # File: app/routes/upload_csv.py
 
 @router.post("/upload-csv")
-async def upload_csv(
+async def upload_csv_and_extract_products(
         file: UploadFile,
         user: User = Depends(basic_auth),
         session: AsyncSession = Depends(get_async_session),
 ):
-    print(f"Debug: Upload initiated by user {user.id}")
+    print(f"Debug: CSV upload and product extraction initiated by user {user.id}")
     print("Debug: CSV file upload endpoint accessed")
     try:
         # Create UploadedFile record first
