@@ -61,7 +61,8 @@ async def post_settings(
         response_max_length: str = Form(...),
         base_prompt_type: str = Form(...),
         user: dict = Depends(basic_auth),
-        session: AsyncSession = Depends(get_async_session)
+        session: AsyncSession = Depends(get_async_session),
+        use_base64_image: bool = Form(False)
 ):
     print(f"Debug: Saving settings for user {user.id}")
     print(f"Debug: Form data - model: {type(model)}, tone: {type(tone)}, temperature: {type(temperature)}")
@@ -106,6 +107,7 @@ async def post_settings(
             existing_settings.base_prompt_type = base_prompt_type
             existing_settings.base_default_prompt = base_default_prompt
             existing_settings.updated_at = datetime.utcnow()
+            existing_settings.use_base64_image = use_base64_image
         else:
             print("Debug: Creating new settings record")
             new_settings = Setting(
@@ -117,6 +119,7 @@ async def post_settings(
                 response_max_length = response_max_length,
                 base_prompt_type = base_prompt_type,
                 base_default_prompt = base_default_prompt,
+                use_base64_image = use_base64_image,
                 created_at = datetime.utcnow(),
                 updated_at = datetime.utcnow()
             )

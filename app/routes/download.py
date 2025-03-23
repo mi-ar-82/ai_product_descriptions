@@ -15,9 +15,9 @@ from app.auth import basic_auth
 router = APIRouter()
 
 
-@router.get("/download/products_output/{file_id}.csv", name="download_products_output")
+@router.get("/download/products_output/{uploaded_file_id}.csv", name="download_products_output")
 async def download_products_output(
-        file_id: int,
+        uploaded_file_id: int,
         user = Depends(basic_auth),
         session: AsyncSession = Depends(get_async_session)
 ):
@@ -25,7 +25,7 @@ async def download_products_output(
         # Verify the file belongs to this user and get filename
         file_result = await session.execute(
             select(UploadedFile).where(
-                (UploadedFile.id == file_id) &
+                (UploadedFile.id == uploaded_file_id) &
                 (UploadedFile.user_id == user.id)
             )
         )
@@ -37,7 +37,7 @@ async def download_products_output(
         # Fetch processed products for this specific file only
         result = await session.execute(
             select(Product).where(
-                (Product.uploadedfileid == file_id) &
+                (Product.uploaded_file_id == uploaded_file_id) &
                 (Product.status == "Completed")
             )
         )
@@ -48,7 +48,7 @@ async def download_products_output(
             raise HTTPException(status_code=404, detail="No processed products found.")
 
         # Get the uploaded file ID from the first product
-        uploaded_file_id = processed_products[0].uploadedfileid
+        uploaded_file_id = processed_products[0].uploaded_file_id
 
         # Query the UploadedFile to get the filename
         file_result = await session.execute(
@@ -63,8 +63,8 @@ async def download_products_output(
         # Define temporary storage path
         temp_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "temp")
         os.makedirs(temp_dir, exist_ok=True)
-        original_file_path = os.path.join(temp_dir, uploaded_file.file_name)
-
+        original_file_path = os.path.join(temp_dir, f"{uploaded_file.id}_{uploaded_file.file_name}")
+        print(f"Debug: Looking for original file at {original_file_path}")
         # Try to load the original file if it exists
         original_df = None
         if os.path.exists(original_file_path):
@@ -79,7 +79,7 @@ async def download_products_output(
         if original_df is None:
             print("Debug: Original file not found, fetching all products from database")
             all_products_result = await session.execute(
-                select(Product).where(Product.uploadedfileid == uploaded_file_id)
+                select(Product).where(Product.uploaded_file_id == uploaded_file_id)
             )
             all_products = all_products_result.scalars().all()
             print(f"Debug: Retrieved {len(all_products)} total products from database")

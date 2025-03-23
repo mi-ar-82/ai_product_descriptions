@@ -2,7 +2,6 @@
 from fastapi import APIRouter
 
 
-
 # Import routers lazily to avoid circular dependencies
 router = APIRouter()
 

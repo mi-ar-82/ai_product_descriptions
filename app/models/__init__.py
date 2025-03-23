@@ -25,7 +25,7 @@ class Product(Base):
     __tablename__ = "products"
 
     id = Column(Integer, primary_key=True)
-    uploadedfileid = Column(Integer, ForeignKey("uploaded_files.id"), nullable=False)
+    uploaded_file_id = Column(Integer, ForeignKey("uploaded_files.id"), nullable=False)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)  # Add this line
     status = Column(String)
     created_at = Column(DateTime, default=datetime.utcnow)
@@ -59,6 +59,7 @@ class Setting(Base):
     base_default_prompt = Column(Text)
     created_at = Column(DateTime, default = datetime.utcnow)
     updated_at = Column(DateTime, default = datetime.utcnow, onupdate = datetime.utcnow)
+    use_base64_image = Column(Boolean, default = False)
 
     # Relationship to User model
     user = relationship("User", back_populates="settings")

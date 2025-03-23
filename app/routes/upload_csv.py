@@ -77,7 +77,7 @@ async def upload_csv(
         # Create products (only for rows with Title values)
         products = [
             Product(
-                uploadedfileid = uploaded_file.id,
+                uploaded_file_id = uploaded_file.id,
                 user_id = user.id,
                 handle = row["Handle"],
                 input_title = row["Title"],

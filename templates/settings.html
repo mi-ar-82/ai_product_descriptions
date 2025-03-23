@@ -46,6 +46,10 @@
         <option value="long" {% if settings and settings.response_max_length == 'long' %}selected{% endif %}>Long</option>
       </select>
     </div>
+    <div class="form-group">
+      <label for="use_base64_image">Use Base64 Image:</label>
+      <input type="checkbox" id="use_base64_image" name="use_base64_image" {% if settings.use_base64_image %}checked{% endif %}>
+    </div>
 
     <!-- Prompt Selection -->
     <div class="form-group">

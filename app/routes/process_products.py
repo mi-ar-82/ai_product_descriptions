@@ -6,6 +6,7 @@ from app.db import get_async_session
 from app.auth import basic_auth
 from app.models import Product, Setting
 from app.services.openai_service import generate_product_description
+from app.services.text_utils import convert_markdown_to_html, convert_markdown_to_plain_text
 from fastapi.responses import RedirectResponse
 from urllib.parse import quote
 
@@ -80,26 +81,34 @@ async def process_products(
             print("Debug: Messages prepared for OpenAI:", messages)
             print("Debug: Data type of messages:", type(messages))
 
-            # Generate description using OpenAI API
-            generated_description = await generate_product_description(
+            # Generate description using OpenAI API (returns markdown)
+            generated_markdown = await generate_product_description(
                 messages = messages,
                 model = user_settings.model,
                 temperature = float(user_settings.temperature),
                 max_tokens = user_settings.max_tokens,
+                use_base64_image = user_settings.use_base64_image
             )
 
-            # Update product fields
-            product.output_body = generated_description
+            # Convert the markdown to appropriate formats
+            html_body = convert_markdown_to_html(generated_markdown)
+            plain_text = convert_markdown_to_plain_text(generated_markdown)
+
+            print("Debug: Generated markdown:", generated_markdown[:100] + "...")
+            print("Debug: Converted HTML:", html_body[:100] + "...")
+            print("Debug: Converted plain text:", plain_text[:100] + "...")
+
+            # Update product fields with converted formats
+            product.output_body = html_body  # HTML for body
             product.output_seo_title = product.input_title  # Using input title as SEO title
-            product.output_seo_descr = generated_description[
-                                       :160] if generated_description else ""  # First 160 chars for SEO description
+            product.output_seo_descr = plain_text[:160] if plain_text else ""  # Plain text for SEO description
             product.status = "Completed"
             session.add(product)
 
         await session.commit()
         print("Debug: Commit successful after processing products.")
 
-        # Redirect to dashboard with success message instead of returning JSON
+        # Redirect to dashboard with success message
         success_message = f"Successfully processed {len(products_to_process)} products."
         return RedirectResponse(
             url = f"/dashboard?message={quote(success_message)}",
