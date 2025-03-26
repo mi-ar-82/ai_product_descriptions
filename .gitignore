@@ -20,7 +20,7 @@ Thumbs.db
 *.log
 *.tmp
 
-# Environment variables
+# Environment variables !!!!!!!
 .env
 
 #database
@@ -40,3 +40,7 @@ code_combiner.py
 */output_code_combiner*/
 
 */sample_input_data/*
+
+
+tests/
+temp/

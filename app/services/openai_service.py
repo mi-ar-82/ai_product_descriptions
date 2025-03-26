@@ -2,54 +2,70 @@
 import openai
 from app.config import settings
 from app.services.image_processing import process_image
-
+from app.services.prompt_service import prompt_service
+from app.services.ai_response_service import ai_response_service
 
 openai.api_key = settings.OPENAI_API_KEY
 
 
 async def generate_product_description(
-        messages: list, model: str, temperature: float, max_tokens: int, use_base64_image: bool) -> str:
+        product_info: dict,
+        model: str,
+        temperature: float,
+        max_tokens: int,
+        prompt_type: str = "conversion",
+        use_base64_image: bool = False
+) -> dict:
     try:
-        print(f"Debug: Calling OpenAI API with model: {model}")
-        print(f"Debug: Temperature: {temperature}, max_tokens: {max_tokens}")
-        print(f"Debug: Using base64 image: {use_base64_image}")
+        print(f"Debug: Generating description with prompt type: {prompt_type}")
+        print(f"Debug: Model: {model}, Temperature: {temperature}, max_tokens: {max_tokens}")
 
-        if use_base64_image:
+        # Get prompt data
+        prompt_data = prompt_service.get_prompt(prompt_type)
+
+        # Format prompt for OpenAI API
+        messages = prompt_service.format_prompt_for_api(
+            prompt_data = prompt_data,
+            product_info = product_info,
+            api_type = "openai"
+        )
+
+        # Process image if needed
+        if use_base64_image and product_info.get("image_url"):
             for message in messages:
                 if isinstance(message['content'], list):
                     for content in message['content']:
-                        if content['type'] == 'image_url':
+                        if content.get('type') == 'image_url':
                             base64_image = process_image(content['image_url']['url'])
                             content['image_url']['url'] = base64_image
-                            print(f"Debug: Base64 image (first 100 characters): {base64_image[:100]}...")
+                            print(f"Debug: Base64 image (first 100 chars): {base64_image[:100]}...")
 
-        # Create a copy of the messages to modify for printing
+        # Create debug-friendly version of messages
         print_messages = messages.copy()
         for message in print_messages:
             if isinstance(message['content'], list):
                 for content in message['content']:
-                    if content['type'] == 'image_url':
+                    if content.get('type') == 'image_url':
                         content['image_url']['url'] = content['image_url']['url'][:100] + "..."
 
-        print("Debug: Full message being sent to OpenAI API (base64 image truncated):")
-        print(print_messages)
+        print(f"Debug: Messages for OpenAI: {print_messages}")
+        print(f"Debug: Message type: {type(messages)}")
 
-
-
-
-
-
+        # Call OpenAI API
         response = openai.ChatCompletion.create(
-            model=model,
-            messages=messages,
-            temperature=temperature,
-            max_tokens=max_tokens,
+            model = model,
+            messages = messages,
+            temperature = temperature,
+            max_tokens = max_tokens,
         )
-        print("Debug: OpenAI API response:")
-        print(response) #openai api output
-        print("Debug: Data type of response:", type(response))
 
-        return response.choices[0].message.content.strip()
+        raw_response = response.choices[0].message.content.strip()
+        print(f"Debug: Raw response type: {type(raw_response)}")
+
+        # Parse structured response
+        parsed_response = prompt_service.parse_ai_response(raw_response)
+        return parsed_response
+
     except Exception as e:
         print(f"OpenAI API Error: {e}")
         raise e

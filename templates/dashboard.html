@@ -37,7 +37,7 @@
         <span>{{ file.file_name }}</span>
         <span>{{ file.upload_date }}</span>
         <span>{{ file.status }}</span>
-        <a href="{{ url_for('download_products_output', uploaded_file_id=file.id) }}" class="btn-download">Download</a>
+        <a href="/download/products_output/{{ file.id }}.csv" class="btn-download">Download</a>
       </div>
     {% else %}
       No files uploaded yet.
