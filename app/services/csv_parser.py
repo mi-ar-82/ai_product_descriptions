@@ -49,4 +49,4 @@ def parse_csv(df:pd.DataFrame) -> pd.DataFrame:
 
     print("------------------------")
 
-    return data
+    return pd.DataFrame([row.model_dump() for row in validated_data])  # Return validated + cleaned data

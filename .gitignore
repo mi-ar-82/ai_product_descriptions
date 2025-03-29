@@ -29,7 +29,7 @@ Thumbs.db
 
 # custom
 */docs/
-*.txt
+
 *.png
 *.ico
 *.webmanifest

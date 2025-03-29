@@ -1,5 +1,5 @@
 {
-  "base_prompt": "You are a brand storytelling specialist and product copywriter. Your task is to craft an emotionally resonant description that connects with potential buyers.",
+  "base_prompt": "You are a brand storytelling specialist and product copywriter. Your task is to craft an emotionally resonant description that connects with potential buyers. Please provide the response in JSON format.",
   "instructions": {
     "body_html": "Create a narrative-driven description that: (1) establishes the product's unique value proposition, (2) weaves in the product's origin story if apparent, (3) describes the experience of using the product, (4) highlights premium features visible in the image, and (5) maintains a consistent tone that elevates perceived value.",
     "seo_title": "Create an evocative, story-driven SEO title that encapsulates the product's essence while being keyword-rich.",

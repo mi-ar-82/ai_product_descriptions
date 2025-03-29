@@ -1,4 +1,3 @@
-# File: app/routes/settings.py
 from fastapi import APIRouter, Request, Form, Depends, HTTPException
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
@@ -8,18 +7,36 @@ from datetime import datetime
 from app.models import Setting
 from app.db import get_async_session
 from app.auth import basic_auth
+from app.services.prompt_service import prompt_service  # Import the prompt service
 
 router = APIRouter()
 templates = Jinja2Templates(directory = "templates")
 
-# Define the three pre-written prompts
-PREDEFINED_PROMPTS = {
-    "conversion": """You are an elite e-commerce copywriter with expertise in conversion optimization. Analyze the provided product image, title, and existing description to create a compelling product description that: (1) highlights key features and benefits, (2) addresses customer pain points, (3) includes sensory language to help customers imagine using the product, (4) incorporates relevant keywords for SEO, and (5) ends with a persuasive call-to-action. Your copy should be scannable with bullet points for key features and maintain a professional yet engaging tone.""",
 
-    "storytelling": """You are a brand storytelling specialist and product copywriter. Your task is to craft an emotionally resonant product description that connects with potential buyers. Examine the provided image, title, and existing description carefully. Create a narrative-driven description that: (1) establishes the product's unique value proposition, (2) weaves in the product's origin story or inspiration if apparent, (3) describes the experience of using the product, (4) highlights premium features visible in the image, and (5) maintains a consistent tone that elevates the perceived value. Balance factual information with aspirational language.""",
+# Function to load all prompts from the prompts directory
+def load_all_prompts():
+    """Load all available prompts from the prompts directory"""
+    print("Debug: Loading all prompts from files")
+    print(f"Debug: Type of prompts_dir: {type(prompt_service.prompts_dir)}")
 
-    "technical": """You are a technical product specialist and copywriting expert. Your mission is to create a precise, informative, and compelling product description based on the provided image, title, and existing description. Your output should: (1) identify and explain technical specifications visible in the image, (2) translate complex features into clear customer benefits, (3) compare the product to industry standards where relevant, (4) organize information in a logical hierarchy with subheadings and bullet points, and (5) use authoritative language that builds trust. Ensure the description is accessible to both novice and expert customers while maintaining technical accuracy."""
-}
+    prompts = {}
+    # Get list of JSON files in the prompts directory
+    prompt_files = [f.stem for f in prompt_service.prompts_dir.glob("*.json") if f.is_file()]
+
+    # Load each prompt
+    for prompt_name in prompt_files:
+        # Skip API-specific prompts (those with an underscore)
+        if "_" in prompt_name:
+            continue
+        try:
+            prompt_data = prompt_service.get_prompt(prompt_name)
+            prompts[prompt_name] = prompt_data["base_prompt"]
+            print(f"Debug: Loaded prompt: {prompt_name}")
+        except Exception as e:
+            print(f"Debug: Error loading prompt {prompt_name}: {str(e)}")
+
+    print(f"Debug: Loaded {len(prompts)} prompts: {list(prompts.keys())}")
+    return prompts
 
 
 @router.get("/settings", response_class = HTMLResponse)
@@ -41,10 +58,14 @@ async def get_settings(
             print("Debug: Settings content:", settings.__dict__)
         else:
             print("Debug: No settings found for user")
+
+        # Load all available prompts from files
+        predefined_prompts = load_all_prompts()
+
         return templates.TemplateResponse("settings.html", {
             "request": request,
             "settings": settings,
-            "predefined_prompts": PREDEFINED_PROMPTS
+            "predefined_prompts": predefined_prompts
         })
     except Exception as e:
         print(f"Error loading settings: {str(e)}")
@@ -54,8 +75,7 @@ async def get_settings(
 @router.post("/settings", response_class = HTMLResponse)
 async def post_settings(
         request: Request,
-        model: str = Form(...),
-        tone: str = Form(...),
+        ai_model: str = Form(...),
         temperature: str = Form(...),
         max_tokens: int = Form(...),
         response_max_length: str = Form(...),
@@ -65,16 +85,17 @@ async def post_settings(
         use_base64_image: bool = Form(False)
 ):
     print(f"Debug: Saving settings for user {user.id}")
-    print(f"Debug: Form data - model: {type(model)}, tone: {type(tone)}, temperature: {type(temperature)}")
+    print(f"Debug: Form data - model: {type(ai_model)}, temperature: {type(temperature)}")
     print(f"Debug: Form data - max_tokens: {type(max_tokens)}, response_max_length: {type(response_max_length)}")
     print(f"Debug: Form data - base_prompt_type: {type(base_prompt_type)}")
 
     try:
-        # Validate inputs (validation code remains unchanged)
-        if model not in ["gpt-4o-mini"]:
-            raise ValueError("Invalid model selection")
-        if not tone.strip():
-            raise ValueError("Tone cannot be empty")
+        # Load all available prompts
+        predefined_prompts = load_all_prompts()
+
+        # Validate inputs
+        if ai_model not in ["gpt-4o-mini"]:
+            raise ValueError("Invalid ai model selection")
         try:
             temp = float(temperature)
             if temp < 0 or temp > 2:
@@ -85,10 +106,12 @@ async def post_settings(
             raise ValueError("Max tokens must be between 100 and 2000")
         if response_max_length not in ["short", "medium", "long"]:
             raise ValueError("Invalid response length")
-        if base_prompt_type not in PREDEFINED_PROMPTS:
+        if base_prompt_type not in predefined_prompts:
             raise ValueError("Invalid prompt type selection")
 
-        base_default_prompt = PREDEFINED_PROMPTS[base_prompt_type]
+        # Get the prompt data from file
+        prompt_data = prompt_service.get_prompt(base_prompt_type)
+        base_default_prompt = prompt_data["base_prompt"]
 
         # Check if settings already exist for the user
         result = await session.execute(
@@ -99,8 +122,7 @@ async def post_settings(
 
         if existing_settings:
             print("Debug: Updating existing settings")
-            existing_settings.model = model
-            existing_settings.tone = tone
+            existing_settings.ai_model = ai_model
             existing_settings.temperature = temperature
             existing_settings.max_tokens = max_tokens
             existing_settings.response_max_length = response_max_length
@@ -112,8 +134,7 @@ async def post_settings(
             print("Debug: Creating new settings record")
             new_settings = Setting(
                 user_id = user.id,
-                model = model,
-                tone = tone,
+                ai_model = ai_model,
                 temperature = temperature,
                 max_tokens = max_tokens,
                 response_max_length = response_max_length,
@@ -126,15 +147,16 @@ async def post_settings(
             session.add(new_settings)
 
         await session.commit()
-        # Debug print to check final settings type (either updated or newly created)
         print("Debug: Settings saved successfully for user", user.id)
         return RedirectResponse(url = "/dashboard", status_code = 303)
     except ValueError as e:
         print(f"Validation error: {str(e)}")
+        # Load prompts again for the error response
+        predefined_prompts = load_all_prompts()
         return templates.TemplateResponse("settings.html", {
             "request": request,
             "error": str(e),
-            "predefined_prompts": PREDEFINED_PROMPTS
+            "predefined_prompts": predefined_prompts
         })
     except Exception as e:
         print(f"Error saving settings: {str(e)}")

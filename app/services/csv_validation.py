@@ -17,6 +17,10 @@ class ProductCSVRow(BaseModel):
 
 
 def validate_csv_rows(data: List[Dict]) -> List[ProductCSVRow]:
+    """
+
+    :rtype: object
+    """
     validated_rows = []
     errors = []
     print(f"Debug: Validating {len(data)} rows of CSV data")

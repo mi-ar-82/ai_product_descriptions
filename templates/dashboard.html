@@ -52,11 +52,11 @@
     <h3>Current Configuration</h3>
     {% if settings %}
       <dl>
-        <dt>Model:</dt><dd>{{settings.model}}</dd>
-        <dt>Tone:</dt><dd>{{settings.tone}}</dd>
+        <dt>Model:</dt><dd>{{settings.ai_model}}</dd>
         <dt>Temperature:</dt><dd>{{settings.temperature}}</dd>
         <dt>Max Tokens:</dt><dd>{{settings.max_tokens}}</dd>
         <dt>Response Length:</dt><dd>{{settings.response_max_length}}</dd>
+        <dt>Use Base64 image :</dt><dd>{{settings.use_base64_image}}</dd>
         <dt>Prompt Type:</dt><dd>{{settings.base_prompt_type|title}}</dd>
       </dl>
     {% else %}

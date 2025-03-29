@@ -10,7 +10,7 @@ from pydantic import ValidationError
 from app.services.csv_validation import validate_csv_rows
 from app.models import Product
 from app.db import get_async_session
-from ..services.csv_parser import parse_csv
+from app.services.csv_parser import parse_csv
 from app.models import UploadedFile
 from app.auth import basic_auth  # Missing import causing NameError
 from app.models.user import User  # Required for type hinting

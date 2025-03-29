@@ -11,18 +11,13 @@
 
   <form method="post" action="/settings">
     <div class="form-group">
-      <label for="model">AI Model:</label>
-      <select id="model" name="model" required>
-        <option value="gpt-4o-mini" {% if settings and settings.model == 'gpt-4o-mini' %}selected{% endif %}>gpt-4o-mini</option>
+      <label for="ai_model">AI Model:</label>
+      <select id="ai_model" name="ai_model" required>
+        <option value="gpt-4o-mini" {% if settings and settings.ai_model == 'gpt-4o-mini' %}selected{% endif %}>gpt-4o-mini</option>
       </select>
     </div>
 
-    <div class="form-group">
-      <label for="tone">Tone:</label>
-      <input type="text" id="tone" name="tone"
-             value="{% if settings %}{{ settings.tone }}{% endif %}"
-             placeholder="e.g., professional, casual" required>
-    </div>
+
 
     <div class="form-group">
       <label for="temperature">Temperature (0.0 - 2.0):</label>

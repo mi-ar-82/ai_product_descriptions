@@ -61,22 +61,22 @@ async def start_ai_product_description_generation(
             # Generate content using updated service
             generated_content = await generate_product_description(
                 product_info = product_info,
-                model = user_settings.model,
+                ai_model = user_settings.ai_model,
                 temperature = float(user_settings.temperature),
                 max_tokens = user_settings.max_tokens,
                 prompt_type = user_settings.base_prompt_type,
                 use_base64_image = user_settings.use_base64_image
             )
 
-            # Get structured content and convert it to right format (html + plain txt)
+            ## Convert content and log results for debugging
+            html_body = convert_markdown_to_html(generated_content["body_html"])
+            print(f"Debug: Converted body_html to HTML: {html_body[:100]}...")  # Log first 100 characters for brevity
 
-            html_body = (convert_markdown_to_html(generated_content["body_html"]))
+            seo_title = convert_markdown_to_plain_text(generated_content["seo_title"])
+            print(f"Debug: Converted seo_title to plain text: {seo_title}")
 
-            seo_title = (convert_markdown_to_plaintext(generated_content["seo_title"]))  # Use text_utils.py function
-
-            seo_description = (convert_markdown_to_plaintext(generated_content["seo_description"]))  # Use text_utils.py function
-
-
+            seo_description = convert_markdown_to_plain_text(generated_content["seo_description"])
+            print(f"Debug: Converted seo_description to plain text: {seo_description}")
 
             # Update product fields
             product.output_body = html_body

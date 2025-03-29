@@ -50,8 +50,7 @@ class Setting(Base):
 
     id = Column(Integer, primary_key = True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable = False)
-    model = Column(String, default = "gpt-4o-mini")
-    tone = Column(String)
+    ai_model = Column(String, default = "gpt-4o-mini")
     temperature = Column(String)
     max_tokens = Column(Integer)
     response_max_length = Column(String)
