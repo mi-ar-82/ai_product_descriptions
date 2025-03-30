@@ -1,5 +1,4 @@
 # File: app/routes/download.py
-
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
 from sqlalchemy.future import select
@@ -65,15 +64,27 @@ async def download_products_output(
         os.makedirs(temp_dir, exist_ok=True)
         original_file_path = os.path.join(temp_dir, f"{uploaded_file.id}_{uploaded_file.file_name}")
         print(f"Debug: Looking for original file at {original_file_path}")
+
+
+
+
         # Try to load the original file if it exists
         original_df = None
         if os.path.exists(original_file_path):
             try:
                 print(f"Debug: Found original file at {original_file_path}")
                 original_df = pd.read_csv(original_file_path, encoding = "utf-8")
-                print(f"Debug: Original CSV loaded with {len(original_df)} rows and {len(original_df.columns)} columns")
+                print(
+                    f"Debug: Original CSV loaded with UTF-8 encoding, {len(original_df)} rows and {len(original_df.columns)} columns")
             except Exception as e:
-                print(f"Debug: Error reading original file: {e}")
+                print(f"Debug: Error reading original file with UTF-8: {e}")
+                # Try with different encoding as fallback
+                try:
+                    print("Debug: Retrying with 'latin-1' encoding")
+                    original_df = pd.read_csv(original_file_path, encoding = "latin-1")
+                    print(f"Debug: Original CSV loaded with latin-1 encoding")
+                except Exception as retry_e:
+                    print(f"Debug: Retry also failed: {retry_e}")
 
         # If original file not found, create dataframe from database
         if original_df is None:
@@ -141,16 +152,19 @@ async def download_products_output(
 
         # Convert to CSV
         csv_buffer = StringIO()
-        original_df.to_csv(csv_buffer, index=False, encoding="utf-8")
+        # Add UTF-8 BOM to help Excel recognize the encoding
+        csv_buffer.write('\ufeff')
+        original_df.to_csv(csv_buffer, index = False, encoding = "utf-8")
 
         csv_buffer.seek(0)
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         headers = {
-            'Content-Disposition': f'attachment; filename="products_output_{timestamp}.csv"'
+            'Content-Disposition': f'attachment; filename="products_output_{timestamp}.csv"',
+            'Content-Type': 'text/csv; charset=utf-8'  # Explicitly set UTF-8 in Content-Type
         }
 
-        print("Debug: Returning CSV response")
-        return StreamingResponse(csv_buffer, media_type="text/csv", headers=headers)
+        print("Debug: Returning CSV response with UTF-8 encoding and BOM")
+        return StreamingResponse(csv_buffer, media_type = "text/csv", headers = headers)
 
     except Exception as e:
         print(f"Debug: Error generating CSV: {e}")

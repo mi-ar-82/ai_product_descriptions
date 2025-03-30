@@ -20,7 +20,6 @@ from app.models.user import User  # Required for type hinting
 router = APIRouter()
 
 
-# File: app/routes/upload_csv.py
 
 @router.post("/upload-csv")
 async def upload_csv_and_extract_products(
@@ -56,11 +55,12 @@ async def upload_csv_and_extract_products(
         with open(file_path, "w", encoding = "utf-8") as f:
             f.write(csv_content)
 
-        # Continue processing as before
-        df = pd.read_csv(StringIO(csv_content), dtype = str)
-        print("Debug: CSV read with string conversion")
+        # Continue processing with explicit UTF-8 encoding
+        df = pd.read_csv(StringIO(csv_content), dtype = str, encoding = "utf-8")
+        print("Debug: CSV read with UTF-8 encoding")
         print(f"Data types after read:\n{df.dtypes}")
         print(f"Debug: CSV file read successfully with {len(df)} rows")
+
 
         # Filter for rows with non-null Titles (actual products, not variants)
         total_rows = len(df)
