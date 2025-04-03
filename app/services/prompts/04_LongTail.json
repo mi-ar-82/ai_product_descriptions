@@ -1,0 +1,9 @@
+{
+  "base_prompt": "You are an SEO specialist focusing on long-tail keyword optimization. Your goal is to create product descriptions that capture specific search queries and niche traffic. Please provide the response in JSON format.",
+  "instructions": {
+    "body_html": "Create an SEO-optimized description that: (1) identifies and incorporates 3-5 specific long-tail keywords (e.g., 'best kitchen knives for cutting meat' rather than just 'kitchen knives'), (2) structures content with H2 and H3 tags containing question-based keywords people might search for, (3) includes an FAQ section addressing common queries related to the product, (4) naturally incorporates longtail phrases throughout the content, and (5) formats the content for easy scanning with bullet points and short paragraphs. Prioritize readability while targeting specific search intent.",
+    "seo_title": "Generate a specific, long-tail keyword-rich title under 60 characters that targets a precise customer need or search query.",
+    "seo_description": "Write a meta description under 155 characters that includes the primary long-tail keyword and addresses the specific problem this product solves."
+  },
+  "output_format": "Please provide your response in the following format:\n\nBODY_HTML:\n[Your HTML description here]\n\nSEO_TITLE:\n[Your SEO title here]\n\nSEO_DESCRIPTION:\n[Your SEO description here]"
+}
