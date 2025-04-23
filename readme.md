@@ -134,4 +134,4 @@ This web application, built with FastAPI, automates the generation of product de
 
 * The application expects a CSV file formatted like a standard Shopify product export. Key columns used are: `Handle`, `Title`, `Body (HTML)`, `Image Src`, `SEO Title`, `SEO Description`.
 * Ensure your OpenAI API key has sufficient credits/quota.
-* The default database is SQLite (`app_data.db` created in the root if using the default `.env` setting). For production, consider using PostgreSQL or another robust database.
+* The default database is SQLite (`app_data.db` created in the root if using the default `.env` setting). 
